@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir solc-select
 RUN solc-select install 0.8.17 && solc-select use 0.8.17
 
 # Install mythril
-RUN pip install --no-cache-dir mythril
+RUN pip3 install --no-cache-dir mythril
 
 # Copy any additional scripts or requirements you might need
 # e.g. COPY scripts/ /app/scripts
