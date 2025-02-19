@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api import audit  # Import the audit module
 
 app = FastAPI()
 
@@ -16,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],  # ✅ Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # ✅ Allow all headers
 )
+
+# ✅ Include audit API router
+app.include_router(audit.router, prefix="/api")
 
 @app.get("/")
 def home():
