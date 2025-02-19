@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import logging
-from backend.services.scanner import perform_scan
+from services.scanner import perform_scan
+
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)
