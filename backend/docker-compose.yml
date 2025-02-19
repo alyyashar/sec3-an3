@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  slither:
+    build:
+      context: .
+      dockerfile: Dockerfile.slither
+    container_name: slither
+    # If you want to keep it always running, define an entrypoint or do nothing
+
+  mythril:
+    build:
+      context: .
+      dockerfile: Dockerfile.mythril
+    container_name: mythril
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - slither
+      - mythril
+    # The API container can call slither or mythril containers via hostname
+    # e.g. 'slither' or 'mythril' in the Docker network

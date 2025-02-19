@@ -1,119 +1,107 @@
 import subprocess
 import json
+import re
+import logging
+import tempfile
 import os
-from typing import List
-from pydantic import BaseModel
+from fastapi import HTTPException
 
-# ======================
-# DATA MODELS
-# ======================
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-class Vulnerability(BaseModel):
-    tool: str
-    severity: str
-    description: str
-    location: str
+def extract_solidity_version(code: str) -> str:
+    """Extract Solidity version from the pragma statement."""
+    match = re.search(r"pragma solidity\s+([\^~>=]*\d+\.\d+\.\d+)", code)
+    if match:
+        version = match.group(1).strip()
+        logger.info(f"Detected Solidity version: {version}")
+        if "^" in version or "~" in version or ">=" in version:
+            version = version.replace("^", "").replace("~", "").split(" ")[0]
+        return version
+    return None
 
-class AuditResponse(BaseModel):
-    issues_found: int
-    vulnerabilities: List[Vulnerability]
-
-# ======================
-# SLITHER + MYTHRIL PARSING
-# ======================
-
-def parse_slither_output(report_path: str) -> List[Vulnerability]:
-    vulnerabilities = []
-    if os.path.exists(report_path):
-        with open(report_path, "r") as file:
-            try:
-                report = json.load(file)
-                # Slither stores findings in: results -> detectors
-                for issue in report.get("results", {}).get("detectors", []):
-                    vulnerabilities.append(Vulnerability(
-                        tool="Slither",
-                        severity=issue.get("impact", "Unknown"),
-                        description=issue.get("check", "No description"),
-                        location=", ".join(
-                            issue.get("elements", [{}])[0]
-                                 .get("source_mapping", {})
-                                 .get("lines", [])
-                        )
-                    ))
-            except json.JSONDecodeError:
-                vulnerabilities.append(Vulnerability(
-                    tool="Slither",
-                    severity="Error",
-                    description="Failed to parse Slither output",
-                    location="N/A"
-                ))
-    return vulnerabilities
-
-def parse_mythril_output(output: str) -> List[Vulnerability]:
-    vulnerabilities = []
+def ensure_solc_select():
+    """Ensure that solc-select is working."""
     try:
-        report = json.loads(output)
-        # Mythril has "issues" array
-        for issue in report.get("issues", []):
-            vulnerabilities.append(Vulnerability(
-                tool="Mythril",
-                severity=issue.get("severity", "Unknown"),
-                description=issue.get("description", "No description"),
-                location=f"Line {issue.get('lineno', 'N/A')}"
-            ))
+        subprocess.run(["solc-select", "versions"], capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError:
+        raise HTTPException(status_code=500, detail="solc-select is not working properly.")
+
+def install_solc_version(version: str):
+    """Install and switch to the required Solidity version."""
+    ensure_solc_select()
+    installed_versions = subprocess.run(["solc-select", "versions"], capture_output=True, text=True).stdout
+    logger.info(f"Installed Solidity versions: {installed_versions}")
+    if version not in installed_versions:
+        logger.info(f"Installing Solidity {version}...")
+        subprocess.run(["solc-select", "install", version], check=True)
+    logger.info(f"Switching to Solidity {version}...")
+    subprocess.run(["solc-select", "use", version], check=True)
+
+def run_mythril(contract_filename: str) -> dict:
+    """Run Mythril analysis by calling docker exec on the mythril container."""
+    cmd = ["docker", "exec", "mythril", "myth", "analyze", f"/contracts/{contract_filename}", "-o", "json"]
+    logger.info("Running Mythril: " + " ".join(cmd))
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
+    try:
+        return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Mythril"}
     except json.JSONDecodeError:
-        vulnerabilities.append(Vulnerability(
-            tool="Mythril",
-            severity="Error",
-            description="Failed to parse Mythril output",
-            location="N/A"
-        ))
-    return vulnerabilities
+        raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
-# ======================
-# CODE-BASED AUDIT
-# ======================
-
-def audit_contract(contract_code: str) -> AuditResponse:
-    """
-    Save the contract code to a temporary .sol file,
-    run Slither & Mythril, parse results, and return them.
-    """
-    temp_contract = "temp_contract_code.sol"
-    slither_json = "slither-report.json"
-
+def run_slither(contract_filename: str) -> dict:
+    """Run Slither analysis by calling docker exec on the slither container."""
+    cmd = ["docker", "exec", "slither", "slither", f"/contracts/{contract_filename}", "--json", "-"]
+    logger.info("Running Slither: " + " ".join(cmd))
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        logger.error(f"Slither failed: {proc.stderr}")
+        return {"error": proc.stderr}
     try:
-        # 1) Save the code to a .sol file
-        with open(temp_contract, "w") as f:
-            f.write(contract_code)
+        return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Slither"}
+    except json.JSONDecodeError:
+        return {"error": "Slither output is not valid JSON"}
 
-        # 2) Run Slither
-        slither_proc = subprocess.run(
-            ["slither", temp_contract, "--json", slither_json],
-            capture_output=True, text=True
-        )
-        slither_findings = []
-        if os.path.exists(slither_json):
-            slither_findings = parse_slither_output(slither_json)
+def perform_scan(file_path: str = None, code: str = None) -> dict:
+    """
+    Core scanning function.
+    - If `code` (pasted input) is provided, it saves it as a temporary file.
+    - Otherwise, it uses the file_path.
+    - It extracts the Solidity version, installs that solc version,
+      and calls Mythril and Slither via docker exec.
+    """
+    if code:
+        temp_dir = tempfile.mkdtemp()
+        file_name = "contract.sol"
+        contract_full_path = os.path.join(temp_dir, file_name)
+        with open(contract_full_path, "w") as f:
+            f.write(code)
+    elif file_path:
+        file_name = os.path.basename(file_path)
+        contract_full_path = file_path
+    else:
+        raise HTTPException(status_code=400, detail="No contract code provided.")
 
-        # 3) Run Mythril
-        mythril_proc = subprocess.run(
-            ["myth", "analyze", temp_contract, "-o", "json"],
-            capture_output=True, text=True
-        )
-        mythril_findings = parse_mythril_output(mythril_proc.stdout)
+    # Extract Solidity version from the code (if available) or from file content
+    if code:
+        solidity_version = extract_solidity_version(code)
+    else:
+        with open(contract_full_path, "r") as f:
+            solidity_code = f.read()
+        solidity_version = extract_solidity_version(solidity_code)
+    if not solidity_version:
+        raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
 
-        # Combine
-        vulnerabilities = slither_findings + mythril_findings
-        return AuditResponse(
-            issues_found=len(vulnerabilities),
-            vulnerabilities=vulnerabilities
-        )
+    # Install and switch to the required solc version
+    install_solc_version(solidity_version)
 
-    finally:
-        # 4) Clean up files
-        if os.path.exists(temp_contract):
-            os.remove(temp_contract)
-        if os.path.exists(slither_json):
-            os.remove(slither_json)
+    # Run both scanners (they expect the contract file to be in the shared contracts volume)
+    myth_results = run_mythril(file_name)
+    slither_results = run_slither(file_name)
 
+    return {
+        "solidity_version": solidity_version,
+        "mythril": myth_results,
+        "slither": slither_results
+    }

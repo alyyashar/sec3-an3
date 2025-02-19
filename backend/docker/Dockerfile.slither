@@ -1,0 +1,22 @@
+FROM python:3.9-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    nodejs \
+    npm \
+    python3-dev \
+    cargo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install solc-select
+RUN pip install --no-cache-dir solc-select
+
+# Pre-install a default solc version
+RUN solc-select install 0.8.17 && solc-select use 0.8.17
+
+# Install slither
+RUN pip install --no-cache-dir slither-analyzer
+
+CMD ["slither", "--help"]

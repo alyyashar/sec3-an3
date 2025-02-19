@@ -1,20 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.audit import audit_contract, AuditResponse
+import logging
+from backend.services.scanner import perform_scan
 
 router = APIRouter()
+logging.basicConfig(level=logging.INFO)
 
 class AuditRequest(BaseModel):
-    contract_code: str  # The Solidity code as a string
+    contract_code: str  # Solidity code as a string
 
-@router.post("/audit", response_model=AuditResponse)
-async def audit_smart_contract(request: AuditRequest):
-    """
-    Accepts Solidity code as a string, runs Slither + Mythril, 
-    and returns vulnerabilities.
-    """
+@router.post("/")
+async def audit_contract_api(request: AuditRequest):
     try:
-        result = audit_contract(request.contract_code)
+        result = perform_scan(code=request.contract_code)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
