@@ -19,8 +19,8 @@ app.add_middleware(
 )
 
 # Register API endpoints with distinct prefixes
-app.include_router(audit_router, prefix="/api/audit", tags=["audit"])
-app.include_router(scan_router, prefix="/api/scan", tags=["scan"])
+app.include_router(audit_router, prefix="/api")
+app.include_router(scan_router, prefix="/api")
 
 @app.get("/")
 def home():
