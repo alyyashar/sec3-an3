@@ -1,26 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api import audit  # Import the audit module
+from api.audit import router as audit_router
+from api.scan import router as scan_router
 
-app = FastAPI()
+app = FastAPI(title="KONSEC API", version="1.0.0")
 
-# ✅ Allow requests from your Vercel frontend
+# Configure CORS as needed
 origins = [
-    "https://sec3-an3.vercel.app",  # Replace with your exact Vercel frontend URL
-    "http://localhost:3000",  # Allow local development
+    "http://localhost:3000",
+    "https://sec3-an3.vercel.app"  # Or your Vercel domain
 ]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # ✅ Allow specific frontend URLs
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # ✅ Allow all methods (GET, POST, etc.)
-    allow_headers=["*"],  # ✅ Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# ✅ Include audit API router
-app.include_router(audit.router, prefix="/api")
+# Register your API endpoints
+app.include_router(audit_router, prefix="/api")
+app.include_router(scan_router, prefix="/api")
 
 @app.get("/")
 def home():
-    return {"message": "Welcome to SEC3 API"}
+    return {"message": "Welcome to KONSEC API"}
