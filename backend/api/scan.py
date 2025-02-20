@@ -10,19 +10,17 @@ logging.basicConfig(level=logging.INFO)
 async def scan_solidity_file(file: UploadFile = File(...)):
     if not file.filename.endswith(".sol"):
         raise HTTPException(status_code=400, detail="Please upload a .sol file")
-    
-    # Create a temporary directory and save the uploaded file
+
     temp_dir = tempfile.mkdtemp()
     contract_path = os.path.join(temp_dir, file.filename)
     with open(contract_path, "wb") as f:
         f.write(await file.read())
-    
+
     try:
         result = perform_scan(file_path=contract_path)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Clean up temporary file
         if os.path.exists(contract_path):
             os.remove(contract_path)
