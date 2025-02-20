@@ -19,7 +19,6 @@ WORKDIR /app
 RUN pip install --no-cache-dir --upgrade pip
 
 # Install the extra tools (solc-select, mythril, slither-analyzer)
-# This step needs gcc => build-essential must be installed here
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
 # Copy your pinned requirements.txt for normal Python deps
@@ -33,7 +32,6 @@ RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 ########################
 FROM python:3.9-slim
 
-# Also install build tools if you need to run or compile anything at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -55,6 +53,10 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.t
 
 # Also reinstall solc-select, mythril, slither-analyzer in the final image
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
+
+# Install @openzeppelin/contracts so local node_modules includes them
+RUN npm init -y
+RUN npm install @openzeppelin/contracts
 
 # Copy the rest of your backend code
 COPY . .
