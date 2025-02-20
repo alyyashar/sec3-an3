@@ -1,5 +1,32 @@
+########################
+#  Stage 1: Builder    #
+########################
+FROM python:3.9-slim AS builder
+
+WORKDIR /app
+
+# Upgrade pip for improved dependency resolution
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install the extra tools (solc-select, mythril, slither-analyzer)
+# Confirmed:
+#  - pip3 install mythril
+#  - pip3 install slither-analyzer
+RUN pip install --no-cache-dir solc-select mythril slither-analyzer
+
+# Copy your pinned requirements.txt for normal Python deps
+COPY requirements.txt .
+# Build wheels for these deps
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
+
+########################
+#  Stage 2: Final      #
+########################
 FROM python:3.9-slim
 
+WORKDIR /app
+
+# Install system dependencies and upgrade pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -7,16 +34,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     cargo \
-&& rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Install solc-select, mythril, slither
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy wheels from builder
+COPY --from=builder /wheels /wheels
+COPY requirements.txt .
+
+# Install from wheels
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
+
+# Also reinstall solc-select, mythril, slither-analyzer in the final image
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+# Copy the rest of your backend code
 COPY . .
 
 EXPOSE 8000
