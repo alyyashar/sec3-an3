@@ -3,30 +3,7 @@
 ########################
 FROM python:3.9-slim AS builder
 
-WORKDIR /app
-
-# Upgrade pip for improved dependency resolution
-RUN pip install --no-cache-dir --upgrade pip
-
-# Install the extra tools (solc-select, mythril, slither-analyzer)
-# Confirmed:
-#  - pip3 install mythril
-#  - pip3 install slither-analyzer
-RUN pip install --no-cache-dir solc-select mythril slither-analyzer
-
-# Copy your pinned requirements.txt for normal Python deps
-COPY requirements.txt .
-# Build wheels for these deps
-RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
-
-########################
-#  Stage 2: Final      #
-########################
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install system dependencies and upgrade pip
+# Install system packages needed to compile Mythril (pyethash, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -36,13 +13,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cargo \
  && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
+
+# Upgrade pip for improved dependency resolution
 RUN pip install --no-cache-dir --upgrade pip
 
-# Copy wheels from builder
+# Install the extra tools (solc-select, mythril, slither-analyzer)
+# This step needs gcc => build-essential must be installed here
+RUN pip install --no-cache-dir solc-select mythril slither-analyzer
+
+# Copy your pinned requirements.txt for normal Python deps
+COPY requirements.txt .
+# Build wheels for these pinned deps
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
+
+
+########################
+#  Stage 2: Final      #
+########################
+FROM python:3.9-slim
+
+# Also install build tools if you need to run or compile anything at runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    nodejs \
+    npm \
+    cargo \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Upgrade pip in final image
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy wheels from builder stage and install them
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
-
-# Install from wheels
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
 # Also reinstall solc-select, mythril, slither-analyzer in the final image
