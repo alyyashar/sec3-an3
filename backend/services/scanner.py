@@ -25,85 +25,66 @@ def extract_solidity_version(code: str) -> str:
     return None
 
 
-def install_solc_version_in_container(container: str, version: str):
+def install_solc_version(version: str):
     """
-    Installs and switches to the required Solidity version *inside* the given container
-    using 'docker exec <container> solc-select ...'.
+    Installs and switches to the required Solidity version locally using solc-select.
+    Assumes that solc-select is installed in this container.
     """
-    # Check that solc-select is available in the container
-    cmd_versions = ["docker", "exec", container, "solc-select", "versions"]
-    proc = subprocess.run(cmd_versions, capture_output=True, text=True)
-    if proc.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"solc-select not working in container '{container}': {proc.stderr}"
-        )
+    try:
+        # Check that solc-select works
+        subprocess.run(["solc-select", "versions"], capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError:
+        raise HTTPException(status_code=500, detail="solc-select is not working properly.")
 
-    installed_versions = proc.stdout
+    installed_versions = subprocess.run(["solc-select", "versions"], capture_output=True, text=True).stdout
+    logger.info(f"Installed Solidity versions: {installed_versions}")
+
     if version not in installed_versions:
-        logger.info(f"Installing Solidity {version} in container '{container}'...")
-        install_proc = subprocess.run(
-            ["docker", "exec", container, "solc-select", "install", version],
-            capture_output=True, text=True
-        )
+        logger.info(f"Installing Solidity {version}...")
+        install_proc = subprocess.run(["solc-select", "install", version], capture_output=True, text=True)
         if install_proc.returncode != 0:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed installing solc {version} in {container}: {install_proc.stderr}"
+                detail=f"Failed installing solc {version}: {install_proc.stderr}"
             )
-
-    logger.info(f"Switching to Solidity {version} in container '{container}'...")
-    use_proc = subprocess.run(
-        ["docker", "exec", container, "solc-select", "use", version],
-        capture_output=True, text=True
-    )
+    logger.info(f"Switching to Solidity {version}...")
+    use_proc = subprocess.run(["solc-select", "use", version], capture_output=True, text=True)
     if use_proc.returncode != 0:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed using solc {version} in {container}: {use_proc.stderr}"
+            detail=f"Failed switching to solc {version}: {use_proc.stderr}"
         )
 
 
-def run_mythril(contract_filename: str) -> dict:
+def run_mythril(contract_path: str) -> dict:
     """
-    Run Mythril analysis by calling 'docker exec mythril myth analyze /contracts/<file> -o json'.
-    Returns the parsed JSON or an error dict.
+    Run Mythril analysis locally by executing:
+      myth analyze <contract_path> -o json
+    Returns the parsed JSON output.
     """
-    cmd = [
-        "docker", "exec", "mythril",
-        "myth", "analyze", f"/contracts/{contract_filename}", "-o", "json"
-    ]
+    cmd = ["myth", "analyze", contract_path, "-o", "json"]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Mythril failed: {proc.stderr}"
-        )
+        raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
     try:
         return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Mythril"}
     except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=500,
-            detail="Mythril output is not valid JSON"
-        )
+        raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
 
-def run_slither(contract_filename: str) -> dict:
+def run_slither(contract_path: str) -> dict:
     """
-    Run Slither analysis by calling 'docker exec slither slither /contracts/<file> --json -'.
-    Returns the parsed JSON or an error dict.
+    Run Slither analysis locally by executing:
+      slither <contract_path> --json -
+    Returns the parsed JSON output.
     """
-    cmd = [
-        "docker", "exec", "slither",
-        "slither", f"/contracts/{contract_filename}", "--json", "-"
-    ]
+    cmd = ["slither", contract_path, "--json", "-"]
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         logger.error(f"Slither failed: {proc.stderr}")
         return {"error": proc.stderr}
-
     try:
         return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Slither"}
     except json.JSONDecodeError:
@@ -112,92 +93,47 @@ def run_slither(contract_filename: str) -> dict:
 
 def perform_scan(file_path: str = None, code: str = None) -> dict:
     """
-    Orchestrates the scanning process:
-      1) If `code` is provided, writes it to a temp .sol file; else uses file_path.
-      2) Extracts the Solidity version from the code.
-      3) Installs that solc version in both mythril and slither containers (via solc-select).
-      4) Runs Mythril and Slither analyses (docker exec).
+    Orchestrates the scanning process locally:
+      1) If 'code' (pasted input) is provided, writes it to a temporary .sol file;
+         otherwise, uses the provided file_path.
+      2) Extracts the Solidity version from the contract.
+      3) Installs and switches to that solc version using solc-select.
+      4) Runs Mythril and Slither analyses locally.
       5) Returns combined results.
-
-    The scanning containers (mythril, slither) must each have solc-select installed.
     """
     if code:
-        # Pasted code scenario: create a temp file
+        # Pasted code: write to a temporary file
         temp_dir = tempfile.mkdtemp()
         file_name = "contract.sol"
-        contract_full_path = os.path.join(temp_dir, file_name)
-        with open(contract_full_path, "w") as f:
+        contract_path = os.path.join(temp_dir, file_name)
+        with open(contract_path, "w") as f:
             f.write(code)
     elif file_path:
-        # File path scenario
         file_name = os.path.basename(file_path)
-        contract_full_path = file_path
+        contract_path = file_path
     else:
         raise HTTPException(status_code=400, detail="No contract code provided.")
 
-    # Extract the Solidity version
+    # Extract Solidity version
     if code:
         solidity_version = extract_solidity_version(code)
     else:
-        with open(contract_full_path, "r") as f:
+        with open(contract_path, "r") as f:
             solidity_code = f.read()
         solidity_version = extract_solidity_version(solidity_code)
+
     if not solidity_version:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not detect Solidity version."
-        )
+        raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
 
-    # 1) Install solc version in mythril container
-    install_solc_version_in_container("mythril", solidity_version)
-    # 2) Mythril analysis
-    myth_results = run_mythril(file_name)
+    # Install and switch to the required solc version locally
+    install_solc_version(solidity_version)
 
-    # 3) Install solc version in slither container
-    install_solc_version_in_container("slither", solidity_version)
-    # 4) Slither analysis
-    slither_results = run_slither(file_name)
+    # Run analyses locally
+    myth_results = run_mythril(contract_path)
+    slither_results = run_slither(contract_path)
 
     return {
         "solidity_version": solidity_version,
         "mythril": myth_results,
         "slither": slither_results
     }
-
-
-def install_solc_version_in_container(container: str, version: str):
-    """
-    Install & switch to the required Solidity version *inside* the given container.
-    """
-    # Check solc-select in the container
-    cmd_versions = ["docker", "exec", container, "solc-select", "versions"]
-    proc = subprocess.run(cmd_versions, capture_output=True, text=True)
-    if proc.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"solc-select not working in container '{container}': {proc.stderr}"
-        )
-
-    installed_versions = proc.stdout
-    if version not in installed_versions:
-        logger.info(f"Installing Solidity {version} in container '{container}'...")
-        install_proc = subprocess.run(
-            ["docker", "exec", container, "solc-select", "install", version],
-            capture_output=True, text=True
-        )
-        if install_proc.returncode != 0:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed installing solc {version} in {container}: {install_proc.stderr}"
-            )
-
-    logger.info(f"Switching to Solidity {version} in container '{container}'...")
-    use_proc = subprocess.run(
-        ["docker", "exec", container, "solc-select", "use", version],
-        capture_output=True, text=True
-    )
-    if use_proc.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed using solc {version} in {container}: {use_proc.stderr}"
-        )
