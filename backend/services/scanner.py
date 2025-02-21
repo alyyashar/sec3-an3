@@ -49,28 +49,27 @@ def install_solc_version(version: str):
 def run_mythril(contract_path: str) -> dict:
     """
     Mythril invocation includes:
+      --allow-paths .
       --solc-args "--base-path . --include-path node_modules"
-      --solc-allow-paths . 
-    (One or both might be needed, depending on Mythril version.)
     """
     abs_path = os.path.abspath(contract_path)
     cmd = [
         "myth", "analyze", abs_path,
         "-o", "json",
-        "--solc-args", "--base-path . --include-path node_modules",
-        "--solc-allow-paths", "."
+        "--allow-paths", ".",
+        "--solc-args", "--base-path . --include-path node_modules"
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        # If Mythril sees an error from solc, it tries to parse that error as JSON => JSONDecodeError
+        # Mythril error => raise 500 so the user can see the message
         raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
     try:
         return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Mythril"}
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=500,
-            detail="Mythril output is not valid JSON. Possibly solc returned an error instead of JSON."
+            detail="Mythril output is not valid JSON. Possibly solc returned an error."
         )
 
 
