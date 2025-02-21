@@ -91,8 +91,7 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
     cmd = [
         "slither", abs_path,
         "--json", "-",  # Output to stdout as JSON
-        "--solc-remaps", "@openzeppelin=node_modules/@openzeppelin",
-        "--solc-args", "--base-path . --include-path node_modules"
+        "--solc-remaps", "@openzeppelin=node_modules/@openzeppelin"
     ]
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
@@ -102,7 +101,7 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
             tool="slither",
             issue="Analysis failed",
             severity="Error",
-            description=f"Slither exited with code {proc.returncode}: {proc.stderr or 'No error message'}",
+            description=f"Slither exited with code {proc.returncode}: {proc.stdout or proc.stderr or 'No output'}",
             location={}
         )]
     try:
