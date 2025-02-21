@@ -97,16 +97,19 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        logger.error(f"Slither failed: {proc.stderr}")
+        logger.error(f"Slither failed with return code {proc.returncode}: stdout='{proc.stdout}', stderr='{proc.stderr}'")
         return [Vulnerability(
             tool="slither",
             issue="Analysis failed",
             severity="Error",
-            description=proc.stderr,
+            description=f"Slither exited with code {proc.returncode}: {proc.stderr or 'No error message'}",
             location={}
         )]
     try:
-        output = json.loads(proc.stdout) if proc.stdout else {"results": {"detectors": []}}
+        if not proc.stdout:
+            logger.warning("Slither produced no output")
+            return []
+        output = json.loads(proc.stdout)
         findings = []
         if "results" in output and "detectors" in output["results"]:
             for issue in output["results"]["detectors"]:
@@ -122,6 +125,7 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
                 ))
         return findings
     except json.JSONDecodeError:
+        logger.error(f"Slither output invalid JSON: {proc.stdout}")
         return [Vulnerability(
             tool="slither",
             issue="Invalid output",
