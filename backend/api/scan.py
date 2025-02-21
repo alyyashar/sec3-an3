@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile
-import os, tempfile
+import os
+import tempfile
 import logging
 from services.scanner import perform_scan
 
@@ -11,8 +12,9 @@ async def scan_solidity_file(file: UploadFile = File(...)):
     if not file.filename.endswith(".sol"):
         raise HTTPException(status_code=400, detail="Please upload a .sol file")
 
+    # Always rename the file to "contract.sol" in a unique temp directory
     temp_dir = tempfile.mkdtemp()
-    contract_path = os.path.join(temp_dir, file.filename)
+    contract_path = os.path.join(temp_dir, "contract.sol")
     with open(contract_path, "wb") as f:
         f.write(await file.read())
 
@@ -24,3 +26,5 @@ async def scan_solidity_file(file: UploadFile = File(...)):
     finally:
         if os.path.exists(contract_path):
             os.remove(contract_path)
+        if os.path.exists(temp_dir):
+            os.rmdir(temp_dir)  # optional: remove the temp directory too

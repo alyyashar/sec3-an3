@@ -20,17 +20,15 @@ def extract_solidity_version(code: str) -> str:
     return None
 
 def install_solc_version(version: str):
-    """
-    Installs & switches to the required Solidity version using solc-select.
-    """
     try:
-        subprocess.run(["solc-select", "versions"], capture_output=True, text=True, check=True)
+        subprocess.run(["solc-select", "versions"], check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError:
         raise HTTPException(status_code=500, detail="solc-select is not working properly.")
 
     installed_versions = subprocess.run(["solc-select", "versions"], capture_output=True, text=True).stdout
     logger.info(f"Installed Solidity versions: {installed_versions}")
 
+    # Install if missing
     if version not in installed_versions:
         logger.info(f"Installing Solidity {version}...")
         install_proc = subprocess.run(["solc-select", "install", version], capture_output=True, text=True)
@@ -48,14 +46,12 @@ def install_solc_version(version: str):
         )
 
 def run_mythril(contract_path: str) -> dict:
-    """
-    Locally run Mythril with solc args for node_modules. e.g.:
-      myth analyze contract.sol -o json --solc-args "--base-path . --include-path node_modules"
-    """
+    # Use absolute path so there's no confusion for Mythril
+    abs_path = os.path.abspath(contract_path)
     cmd = [
-        "myth", "analyze", contract_path,
+        "myth", "analyze", abs_path,
         "-o", "json",
-        "--solc-args", "--base-path . --include-path node_modules"
+        "--solc-args", "--base-path /app --include-path /app/node_modules"
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
@@ -67,15 +63,12 @@ def run_mythril(contract_path: str) -> dict:
         raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
 def run_slither(contract_path: str) -> dict:
-    """
-    Locally run Slither with:
-      slither contract.sol --json - --solc-remaps @openzeppelin=node_modules/@openzeppelin --solc-args "--base-path . --include-path node_modules"
-    """
+    abs_path = os.path.abspath(contract_path)
     cmd = [
-        "slither", contract_path,
+        "slither", abs_path,
         "--json", "-",
         "--solc-remaps", "@openzeppelin=node_modules/@openzeppelin",
-        "--solc-args", "--base-path . --include-path node_modules"
+        "--solc-args", "--base-path /app --include-path /app/node_modules"
     ]
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
@@ -89,33 +82,30 @@ def run_slither(contract_path: str) -> dict:
 
 def perform_scan(file_path: str = None, code: str = None) -> dict:
     """
-    1) If code is provided, writes it to a temp file, else uses file_path.
-    2) Extracts Solidity version & uses solc-select to install/use that version.
-    3) Runs Mythril & Slither with correct solc arguments for node_modules.
+    If code is provided, save it as 'contract.sol' in a temp directory. If file_path is provided,
+    use that. Then detect the Solidity version, install it, run Mythril & Slither locally.
     """
     if code:
         temp_dir = tempfile.mkdtemp()
-        file_name = "contract.sol"
-        contract_path = os.path.join(temp_dir, file_name)
+        contract_path = os.path.join(temp_dir, "contract.sol")
         with open(contract_path, "w") as f:
             f.write(code)
     elif file_path:
-        file_name = os.path.basename(file_path)
         contract_path = file_path
     else:
         raise HTTPException(status_code=400, detail="No contract code provided.")
 
+    # Detect version
     if code:
         solidity_version = extract_solidity_version(code)
     else:
         with open(contract_path, "r") as f:
             solidity_code = f.read()
         solidity_version = extract_solidity_version(solidity_code)
-
     if not solidity_version:
         raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
 
-    # Install & switch to correct solc version
+    # Install & switch to that version
     install_solc_version(solidity_version)
 
     # Run Mythril & Slither
