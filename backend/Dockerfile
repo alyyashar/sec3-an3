@@ -18,8 +18,9 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install solc-select, mythril, and slither-analyzer
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-# Pre-install common Solidity versions
-RUN solc-select install 0.6.0 0.7.0 0.8.0
+# Pre-install common Solidity versions and verify solc-select
+RUN solc-select install 0.6.0 0.7.0 0.8.0 \
+ && solc-select versions 
 
 # Install Python dependencies from requirements.txt
 COPY requirements.txt .
