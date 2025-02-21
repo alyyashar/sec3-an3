@@ -5,9 +5,26 @@ import logging
 import tempfile
 import os
 from fastapi import HTTPException
+from pydantic import BaseModel
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# Pydantic models for structured output
+class Vulnerability(BaseModel):
+    tool: str
+    issue: str
+    severity: str
+    description: str
+    location: Dict[str, Any]
+
+class ScanReport(BaseModel):
+    solidity_version: str
+    contract_name: str
+    tools_used: List[str]
+    vulnerabilities: List[Vulnerability]
+    summary: Dict[str, Any]
 
 def extract_solidity_version(code: str) -> str:
     match = re.search(r"pragma solidity\s+([\^~>=]*\d+\.\d+\.\d+)", code)
@@ -19,6 +36,9 @@ def extract_solidity_version(code: str) -> str:
         return version
     return None
 
+def extract_contract_name(code: str) -> str:
+    match = re.search(r"contract\s+(\w+)\s*{", code)
+    return match.group(1) if match else "Unknown"
 
 def install_solc_version(version: str):
     try:
@@ -27,59 +47,46 @@ def install_solc_version(version: str):
         raise HTTPException(status_code=500, detail="solc-select is not working properly.")
 
     installed_versions = subprocess.run(["solc-select", "versions"], capture_output=True, text=True).stdout
-    logger.info(f"Installed Solidity versions: {installed_versions}")
-
     if version not in installed_versions:
         logger.info(f"Installing Solidity {version}...")
         install_proc = subprocess.run(["solc-select", "install", version], capture_output=True, text=True)
         if install_proc.returncode != 0:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed installing solc {version}: {install_proc.stderr}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed installing solc {version}: {install_proc.stderr}")
     logger.info(f"Switching to Solidity {version}...")
     use_proc = subprocess.run(["solc-select", "use", version], capture_output=True, text=True)
     if use_proc.returncode != 0:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed switching to solc {version}: {use_proc.stderr}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed switching to solc {version}: {use_proc.stderr}")
 
-
-def run_mythril(contract_path: str) -> dict:
-    """
-    Mythril invocation includes:
-      --allow-paths .
-      --solc-args "--base-path . --include-path node_modules"
-    """
+def run_mythril(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
     cmd = [
         "myth", "analyze", abs_path,
         "-o", "json",
-        "--allow-paths", ".",
-        "--solc-args", "--base-path . --include-path node_modules"
+        "--solc-args", "--base-path . --include-path node_modules",
+        "--execution-timeout", "60"  # Added timeout to prevent hanging
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        # Mythril error => raise 500 so the user can see the message
+        logger.error(f"Mythril failed: {proc.stderr}")
         raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
     try:
-        return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Mythril"}
+        output = json.loads(proc.stdout) if proc.stdout else []
+        findings = []
+        for issue in output.get("issues", []):
+            findings.append(Vulnerability(
+                tool="mythril",
+                issue=issue["title"],
+                severity=issue.get("severity", "Medium"),
+                description=issue["description"],
+                location={"file": issue.get("filename", ""), "line": issue.get("lineno", 0)}
+            ))
+        return findings
     except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=500,
-            detail="Mythril output is not valid JSON. Possibly solc returned an error."
-        )
+        logger.error(f"Mythril output invalid: {proc.stdout}")
+        raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
-
-def run_slither(contract_path: str) -> dict:
-    """
-    Slither invocation includes:
-      --solc-remaps "@openzeppelin=node_modules/@openzeppelin"
-      --solc-args "--base-path . --include-path node_modules"
-      --allow-paths .
-    """
+def run_slither(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
     cmd = [
         "slither", abs_path,
@@ -92,16 +99,51 @@ def run_slither(contract_path: str) -> dict:
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         logger.error(f"Slither failed: {proc.stderr}")
-        return {"error": proc.stderr}
+        return [Vulnerability(
+            tool="slither",
+            issue="Analysis failed",
+            severity="Error",
+            description=proc.stderr,
+            location={}
+        )]
     try:
-        return json.loads(proc.stdout) if proc.stdout else {"error": "No output from Slither"}
+        output = json.loads(proc.stdout) if proc.stdout else {"results": {"detectors": []}}
+        findings = []
+        if "results" in output and "detectors" in output["results"]:
+            for issue in output["results"]["detectors"]:
+                findings.append(Vulnerability(
+                    tool="slither",
+                    issue=issue["check"],
+                    severity=issue.get("impact", "Medium"),
+                    description=issue["description"],
+                    location={
+                        "file": issue["elements"][0]["source_mapping"]["filename_relative"],
+                        "line": issue["elements"][0]["source_mapping"]["lines"][0]
+                    } if issue["elements"] else {}
+                ))
+        return findings
     except json.JSONDecodeError:
-        return {"error": "Slither output is not valid JSON"}
+        return [Vulnerability(
+            tool="slither",
+            issue="Invalid output",
+            severity="Error",
+            description="Slither output is not valid JSON",
+            location={}
+        )]
 
+def generate_summary(findings: List[Vulnerability]) -> Dict[str, Any]:
+    total = len(findings)
+    severity_counts = {"High": 0, "Medium": 0, "Low": 0, "Error": 0}
+    for finding in findings:
+        severity = finding.severity
+        if severity in severity_counts:
+            severity_counts[severity] += 1
+        else:
+            severity_counts["Medium"] += 1  # Default to Medium if unknown
+    return {"total_issues": total, "severity_breakdown": severity_counts}
 
 def perform_scan(file_path: str = None, code: str = None) -> dict:
     if code:
-        # create a temp dir, write code as contract.sol
         temp_dir = tempfile.mkdtemp()
         contract_path = os.path.join(temp_dir, "contract.sol")
         with open(contract_path, "w") as f:
@@ -111,26 +153,32 @@ def perform_scan(file_path: str = None, code: str = None) -> dict:
     else:
         raise HTTPException(status_code=400, detail="No contract code provided.")
 
-    # Detect version
-    if code:
-        solidity_version = extract_solidity_version(code)
-    else:
+    try:
         with open(contract_path, "r") as f:
             solidity_code = f.read()
+
         solidity_version = extract_solidity_version(solidity_code)
+        if not solidity_version:
+            raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
 
-    if not solidity_version:
-        raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
+        contract_name = extract_contract_name(solidity_code)
+        install_solc_version(solidity_version)
 
-    # Install and switch to that version
-    install_solc_version(solidity_version)
+        tools_used = ["mythril", "slither"]
+        vulnerabilities = []
+        vulnerabilities.extend(run_mythril(contract_path))
+        vulnerabilities.extend(run_slither(contract_path))
 
-    # Run Mythril & Slither
-    myth_results = run_mythril(contract_path)
-    slither_results = run_slither(contract_path)
-
-    return {
-        "solidity_version": solidity_version,
-        "mythril": myth_results,
-        "slither": slither_results
-    }
+        report = ScanReport(
+            solidity_version=solidity_version,
+            contract_name=contract_name,
+            tools_used=tools_used,
+            vulnerabilities=vulnerabilities,
+            summary=generate_summary(vulnerabilities)
+        )
+        return report.dict()
+    finally:
+        if code and os.path.exists(contract_path):
+            os.remove(contract_path)
+        if code and os.path.exists(temp_dir):
+            os.rmdir(temp_dir)
