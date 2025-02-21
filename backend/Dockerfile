@@ -18,9 +18,6 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install solc-select, mythril, and slither-analyzer
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-# Verify solc-select is installed (no version installation)
-RUN solc-select --version
-
 # Install Python dependencies from requirements.txt
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
