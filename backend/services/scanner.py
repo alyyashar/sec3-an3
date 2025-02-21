@@ -114,34 +114,43 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
     ]
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        logger.error(f"Slither failed with return code {proc.returncode}: stdout='{proc.stdout}', stderr='{proc.stderr}'")
-        return [Vulnerability(
-            tool="slither",
-            issue="Analysis failed",
-            severity="Error",
-            description=f"Slither exited with code {proc.returncode}: {proc.stdout or proc.stderr or 'No output'}",
-            location={}
-        )]
+    
+    # Log the result for debugging
+    logger.info(f"Slither completed with return code {proc.returncode}: stdout='{proc.stdout[:100]}...', stderr='{proc.stderr}'")
+    
+    # Try parsing the output regardless of return code
     try:
         if not proc.stdout:
             logger.warning("Slither produced no output")
             return []
+        
         output = json.loads(proc.stdout)
-        findings = []
-        if "results" in output and "detectors" in output["results"]:
-            for issue in output["results"]["detectors"]:
-                findings.append(Vulnerability(
-                    tool="slither",
-                    issue=issue["check"],
-                    severity=issue.get("impact", "Medium"),
-                    description=issue["description"],
-                    location={
-                        "file": issue["elements"][0]["source_mapping"]["filename_relative"],
-                        "line": issue["elements"][0]["source_mapping"]["lines"][0]
-                    } if issue["elements"] else {}
-                ))
-        return findings
+        
+        # Check if the analysis succeeded (even with non-zero return code)
+        if output.get("success", False):
+            findings = []
+            if "results" in output and "detectors" in output["results"]:
+                for issue in output["results"]["detectors"]:
+                    findings.append(Vulnerability(
+                        tool="slither",
+                        issue=issue["check"],
+                        severity=issue.get("impact", "Medium"),
+                        description=issue["description"],
+                        location={
+                            "file": issue["elements"][0]["source_mapping"]["filename_relative"],
+                            "line": issue["elements"][0]["source_mapping"]["lines"][0]
+                        } if issue["elements"] else {}
+                    ))
+            return findings
+        else:
+            logger.error(f"Slither analysis failed: {output.get('error', 'Unknown error')}")
+            return [Vulnerability(
+                tool="slither",
+                issue="Analysis failed",
+                severity="Error",
+                description=f"Slither reported failure: {output.get('error', 'No error message')}",
+                location={}
+            )]
     except json.JSONDecodeError:
         logger.error(f"Slither output invalid JSON: {proc.stdout}")
         return [Vulnerability(
@@ -151,6 +160,7 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
             description="Slither output is not valid JSON",
             location={}
         )]
+
 
 def generate_summary(findings: List[Vulnerability]) -> Dict[str, Any]:
     total = len(findings)
