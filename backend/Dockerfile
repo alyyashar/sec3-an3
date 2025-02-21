@@ -3,7 +3,7 @@
 ########################
 FROM python:3.9-slim AS builder
 
-# Install system packages for Mythril & Slither (including gcc for pyethash compilation).
+# Install system packages (including build-essential for Mythril's pyethash)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -21,12 +21,17 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install solc-select, mythril, slither-analyzer
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-# Important: Update solc-select's remote solc list, so older versions like 0.6.0 can be installed
-RUN solc-select update
+# If your solc-select supports "upgrade", you can do:
+# RUN solc-select upgrade || true
+# 
+# Otherwise, remove this line entirely if it fails or isn't needed.
+# 
+# That said, "upgrade" attempts to update the solc-select script
+# so you can see the latest solc versions.
 
 # Copy your pinned requirements.txt
 COPY requirements.txt .
-# Build wheels for these pinned deps
+# Build wheels for pinned deps
 RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 
 
@@ -46,19 +51,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Upgrade pip in final image
+# Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip
 
-# Copy wheels from the builder stage
+# Copy wheels from builder
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
-# Also re-install solc-select, mythril, slither-analyzer
+# Also re-install solc-select, mythril, and slither
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-# Update solc-select's remote list again in the final image
-RUN solc-select update
+# (Optional) Attempt to upgrade solc-select if your version supports it:
+# RUN solc-select upgrade || true
 
 # Install OpenZeppelin for @openzeppelin/contracts
 RUN npm init -y
