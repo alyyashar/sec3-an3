@@ -87,11 +87,12 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
-        logger.error(f"Mythril failed: {proc.stderr}")
+        logger.error(f"Mythril failed: stdout='{proc.stdout}', stderr='{proc.stderr}'")
         raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
     try:
         output = json.loads(proc.stdout) if proc.stdout else []
         findings = []
+        # Parse Mythril issues if present
         for issue in output.get("issues", []):
             findings.append(Vulnerability(
                 tool="mythril",
@@ -100,9 +101,19 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
                 description=issue["description"],
                 location={"file": issue.get("filename", ""), "line": issue.get("lineno", 0)}
             ))
+        # Add a confirmation if no issues are found
+        if not findings:
+            findings.append(Vulnerability(
+                tool="mythril",
+                issue="No issues found",
+                severity="Informational",
+                description="Mythril completed analysis and detected no vulnerabilities in the contract",
+                location={"file": abs_path, "line": 0}
+            ))
+        logger.info(f"Mythril findings: {len(findings)} issues detected")
         return findings
     except json.JSONDecodeError:
-        logger.error(f"Mythril output invalid: {proc.stdout}")
+        logger.error(f"Mythril output invalid: stdout='{proc.stdout}'")
         raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
 def run_slither(contract_path: str, solidity_version: str) -> List[Vulnerability]:
