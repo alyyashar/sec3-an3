@@ -105,13 +105,22 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
         logger.error(f"Mythril output invalid: {proc.stdout}")
         raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
 
-def run_slither(contract_path: str) -> List[Vulnerability]:
+def run_slither(contract_path: str, solidity_version: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
-    cmd = [
-        "slither", abs_path,
-        "--json", "-",  # Output to stdout as JSON
-        "--solc-remaps", "@openzeppelin=node_modules/@openzeppelin"
-    ]
+    # Select OpenZeppelin version based on Solidity version
+    if solidity_version.startswith("0.6."):
+        remaps = "@openzeppelin=./oz-3.4.2/node_modules/@openzeppelin"
+    elif solidity_version.startswith("0.8."):
+        remaps = "@openzeppelin=./oz-4.9.3/node_modules/@openzeppelin"
+    elif solidity_version.startswith("0.4."):
+        remaps = None  # No OpenZeppelin for very old versions like 0.4.x
+    else:
+        remaps = "@openzeppelin=./oz-3.4.2/node_modules/@openzeppelin"  # Default to 3.4.2
+
+    cmd = ["slither", abs_path, "--json", "-"]
+    if remaps:
+        cmd.extend(["--solc-remaps", remaps])
+
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     
@@ -161,10 +170,9 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
             location={}
         )]
 
-
 def generate_summary(findings: List[Vulnerability]) -> Dict[str, Any]:
     total = len(findings)
-    severity_counts = {"High": 0, "Medium": 0, "Low": 0, "Error": 0}
+    severity_counts = {"High": 0, "Medium": 0, "Low": 0, "Informational": 0, "Error": 0}
     for finding in findings:
         severity = finding.severity
         if severity in severity_counts:
@@ -198,7 +206,7 @@ def perform_scan(file_path: str = None, code: str = None) -> dict:
         tools_used = ["mythril", "slither"]
         vulnerabilities = []
         vulnerabilities.extend(run_mythril(contract_path))
-        vulnerabilities.extend(run_slither(contract_path))
+        vulnerabilities.extend(run_slither(contract_path, solidity_version))
 
         report = ScanReport(
             solidity_version=solidity_version,

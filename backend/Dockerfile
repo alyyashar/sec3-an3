@@ -22,9 +22,10 @@ RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install OpenZeppelin 3.4.2 for Solidity 0.6.x compatibility
+# Install multiple OpenZeppelin versions for different Solidity versions
 RUN npm init -y
-RUN npm install @openzeppelin/contracts@3.4.2
+RUN npm install @openzeppelin/contracts@3.4.2 --prefix ./oz-3.4.2
+RUN npm install @openzeppelin/contracts@4.9.3 --prefix ./oz-4.9.3
 
 # Copy the rest of your backend code
 COPY . .
