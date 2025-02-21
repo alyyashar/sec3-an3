@@ -63,7 +63,7 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
         "myth", "analyze", abs_path,
         "-o", "json",
         "--solc-args", "--base-path . --include-path node_modules",
-        "--execution-timeout", "60"  # Added timeout to prevent hanging
+        "--execution-timeout", "60"
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
@@ -90,10 +90,9 @@ def run_slither(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
     cmd = [
         "slither", abs_path,
-        "--json", "-",
+        "--json", "-",  # Output to stdout as JSON
         "--solc-remaps", "@openzeppelin=node_modules/@openzeppelin",
-        "--solc-args", "--base-path . --include-path node_modules",
-        "--allow-paths", "."
+        "--solc-args", "--base-path . --include-path node_modules"
     ]
     logger.info("Running Slither: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
