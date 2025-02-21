@@ -57,17 +57,20 @@ def install_solc_version(version: str):
             install_proc = subprocess.run(["solc-select", "install", version], capture_output=True, text=True)
             if install_proc.returncode != 0:
                 logger.error(f"Failed installing solc {version}: stdout='{install_proc.stdout}', stderr='{install_proc.stderr}'")
-                raise HTTPException(status_code=500, detail=f"Failed installing solc {version}: {install_proc.stderr}")
+                raise HTTPException(status_code=500, detail=f"Failed installing solc {version}: {install_proc.stderr or 'No error output'}")
         
         # Switch to the requested version
         logger.info(f"Switching to Solidity {version}...")
         use_proc = subprocess.run(["solc-select", "use", version], capture_output=True, text=True)
         if use_proc.returncode != 0:
             logger.error(f"Failed switching to solc {version}: stdout='{use_proc.stdout}', stderr='{use_proc.stderr}'")
-            raise HTTPException(status_code=500, detail=f"Failed switching to solc {version}: {use_proc.stderr}")
+            raise HTTPException(status_code=500, detail=f"Failed switching to solc {version}: {use_proc.stderr or 'No error output'}")
         
         # Verify the switch worked
         current_version = subprocess.run(["solc", "--version"], capture_output=True, text=True)
+        if current_version.returncode != 0:
+            logger.error(f"solc --version failed: stdout='{current_version.stdout}', stderr='{current_version.stderr}'")
+            raise HTTPException(status_code=500, detail=f"Failed to verify solc version: {current_version.stderr or 'No error output'}")
         logger.info(f"Current solc version: {current_version.stdout}")
     except FileNotFoundError:
         logger.error("solc-select not found in PATH")
