@@ -78,16 +78,13 @@ def install_solc_version(version: str):
 
 def run_mythril(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
-    # Get the current solc binary path set by solc-select
-    solc_path = subprocess.run(["which", "solc"], capture_output=True, text=True).stdout.strip()
-    if not solc_path:
-        logger.error("solc binary not found in PATH")
-        raise HTTPException(status_code=500, detail="solc binary not found in PATH")
-
+    # Verify which solc is in PATH
+    which_solc = subprocess.run(["which", "solc"], capture_output=True, text=True).stdout.strip()
+    logger.info(f"Using solc from: {which_solc}")
+    
     cmd = [
         "myth", "analyze", abs_path,
         "-o", "json",
-        "--solc", solc_path,  # Explicitly specify solc binary
         "--execution-timeout", "120",
         "--max-depth", "50"
     ]
