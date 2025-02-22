@@ -78,21 +78,28 @@ def install_solc_version(version: str):
 
 def run_mythril(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
+    # Get the current solc binary path set by solc-select
+    solc_path = subprocess.run(["which", "solc"], capture_output=True, text=True).stdout.strip()
+    if not solc_path:
+        logger.error("solc binary not found in PATH")
+        raise HTTPException(status_code=500, detail="solc binary not found in PATH")
+
     cmd = [
         "myth", "analyze", abs_path,
         "-o", "json",
-        "--solc-args", "--base-path . --include-path node_modules",
-        "--execution-timeout", "120",  # Increased to 120 seconds
-        "--max-depth", "50"  # Increase exploration depth
+        "--solc", solc_path,  # Explicitly specify solc binary
+        "--execution-timeout", "120",
+        "--max-depth", "50"
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        logger.error(f"Mythril failed: stdout='{proc.stdout}', stderr='{proc.stderr}'")
-        raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
     
     # Log raw output for debugging
-    logger.info(f"Mythril raw output: stdout='{proc.stdout}'")
+    logger.info(f"Mythril raw output: stdout='{proc.stdout}', stderr='{proc.stderr}'")
+    
+    if proc.returncode != 0:
+        logger.error(f"Mythril failed: stdout='{proc.stdout}', stderr='{proc.stderr}'")
+        raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr or proc.stdout or 'No error output'}")
     
     try:
         output = json.loads(proc.stdout) if proc.stdout else []
