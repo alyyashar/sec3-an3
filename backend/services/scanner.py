@@ -82,17 +82,21 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
         "myth", "analyze", abs_path,
         "-o", "json",
         "--solc-args", "--base-path . --include-path node_modules",
-        "--execution-timeout", "60"
+        "--execution-timeout", "120",  # Increased to 120 seconds
+        "--max-depth", "50"  # Increase exploration depth
     ]
     logger.info("Running Mythril: " + " ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         logger.error(f"Mythril failed: stdout='{proc.stdout}', stderr='{proc.stderr}'")
         raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr}")
+    
+    # Log raw output for debugging
+    logger.info(f"Mythril raw output: stdout='{proc.stdout}'")
+    
     try:
         output = json.loads(proc.stdout) if proc.stdout else []
         findings = []
-        # Parse Mythril issues if present
         for issue in output.get("issues", []):
             findings.append(Vulnerability(
                 tool="mythril",
@@ -101,7 +105,6 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
                 description=issue["description"],
                 location={"file": issue.get("filename", ""), "line": issue.get("lineno", 0)}
             ))
-        # Add a confirmation if no issues are found
         if not findings:
             findings.append(Vulnerability(
                 tool="mythril",
