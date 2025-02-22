@@ -78,9 +78,14 @@ def install_solc_version(version: str):
 
 def run_mythril(contract_path: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
+    
     # Verify which solc is in PATH
     which_solc = subprocess.run(["which", "solc"], capture_output=True, text=True).stdout.strip()
     logger.info(f"Using solc from: {which_solc}")
+    
+    # Verify solc version
+    solc_version = subprocess.run([which_solc, "--version"], capture_output=True, text=True).stdout
+    logger.info(f"solc version: {solc_version}")
     
     cmd = [
         "myth", "analyze", abs_path,
@@ -94,34 +99,58 @@ def run_mythril(contract_path: str) -> List[Vulnerability]:
     # Log raw output for debugging
     logger.info(f"Mythril raw output: stdout='{proc.stdout}', stderr='{proc.stderr}'")
     
-    if proc.returncode != 0:
-        logger.error(f"Mythril failed: stdout='{proc.stdout}', stderr='{proc.stderr}'")
-        raise HTTPException(status_code=500, detail=f"Mythril failed: {proc.stderr or proc.stdout or 'No error output'}")
-    
+    # Try parsing the output regardless of return code
     try:
-        output = json.loads(proc.stdout) if proc.stdout else []
-        findings = []
-        for issue in output.get("issues", []):
-            findings.append(Vulnerability(
+        if not proc.stdout:
+            logger.warning("Mythril produced no output")
+            return [Vulnerability(
                 tool="mythril",
-                issue=issue["title"],
-                severity=issue.get("severity", "Medium"),
-                description=issue["description"],
-                location={"file": issue.get("filename", ""), "line": issue.get("lineno", 0)}
-            ))
-        if not findings:
-            findings.append(Vulnerability(
-                tool="mythril",
-                issue="No issues found",
-                severity="Informational",
-                description="Mythril completed analysis and detected no vulnerabilities in the contract",
+                issue="No output",
+                severity="Error",
+                description="Mythril ran but produced no output",
                 location={"file": abs_path, "line": 0}
-            ))
-        logger.info(f"Mythril findings: {len(findings)} issues detected")
-        return findings
+            )]
+        output = json.loads(proc.stdout)
+        
+        # Check if analysis succeeded
+        if output.get("success", False):
+            findings = []
+            for issue in output.get("issues", []):
+                findings.append(Vulnerability(
+                    tool="mythril",
+                    issue=issue["title"],
+                    severity=issue.get("severity", "Medium"),
+                    description=issue["description"],
+                    location={"file": issue.get("filename", ""), "line": issue.get("lineno", 0)}
+                ))
+            if not findings:
+                findings.append(Vulnerability(
+                    tool="mythril",
+                    issue="No issues found",
+                    severity="Informational",
+                    description="Mythril completed analysis and detected no vulnerabilities in the contract",
+                    location={"file": abs_path, "line": 0}
+                ))
+            logger.info(f"Mythril findings: {len(findings)} issues detected")
+            return findings
+        else:
+            logger.error(f"Mythril analysis failed: {output.get('error', 'Unknown error')}")
+            return [Vulnerability(
+                tool="mythril",
+                issue="Analysis failed",
+                severity="Error",
+                description=f"Mythril failed: {output.get('error', 'No error message')}",
+                location={"file": abs_path, "line": 0}
+            )]
     except json.JSONDecodeError:
         logger.error(f"Mythril output invalid: stdout='{proc.stdout}'")
-        raise HTTPException(status_code=500, detail="Mythril output is not valid JSON")
+        return [Vulnerability(
+            tool="mythril",
+            issue="Invalid output",
+            severity="Error",
+            description="Mythril output is not valid JSON",
+            location={"file": abs_path, "line": 0}
+        )]
 
 def run_slither(contract_path: str, solidity_version: str) -> List[Vulnerability]:
     abs_path = os.path.abspath(contract_path)
