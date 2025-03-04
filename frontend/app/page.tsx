@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Activity, Bug } from "lucide-react";
+import FortaAlerts from "@/components/analytics/forta-alerts";
+import TotalAmountLost from "@/components/analytics/amount-loss";
+import TopDeFiExploits from "@/components/analytics/top-exploits";
 
 export default function DashboardPage() {
   return (
@@ -11,7 +14,7 @@ export default function DashboardPage() {
           <p className="text-zinc-400">Access our comprehensive Web3 security tools</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-[#242424] border-none rounded-xl overflow-hidden">
             <div className="h-1 bg-[#4ee2b5] w-full" />
             <CardHeader>
@@ -66,6 +69,12 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <FortaAlerts />
+          <TopDeFiExploits />
+        </div>
+        <TotalAmountLost />
+
       </div>
     </>
   );
