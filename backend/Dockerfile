@@ -2,7 +2,7 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system packages needed at runtime
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -18,16 +18,21 @@ RUN pip install --no-cache-dir --upgrade pip
 # Install solc-select, mythril, and slither-analyzer
 RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
-# Install Python dependencies from requirements.txt
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install multiple OpenZeppelin versions for different Solidity versions
+# Install specific OpenZeppelin versions if needed
 RUN npm init -y
 RUN npm install @openzeppelin/contracts@3.4.2 --prefix ./oz-3.4.2
 RUN npm install @openzeppelin/contracts@4.9.3 --prefix ./oz-4.9.3
 
-# Copy the rest of your backend code
+# Download Code Llama Model (~6GB)
+RUN mkdir -p /app/models
+RUN curl -L -o /app/models/codellama-13b.Q4_K_M.gguf \
+    "https://huggingface.co/TheBloke/CodeLlama-13B-GGUF/resolve/main/codellama-13b.Q4_K_M.gguf"
+
+# Copy your backend code
 COPY . .
 
 EXPOSE 8000
