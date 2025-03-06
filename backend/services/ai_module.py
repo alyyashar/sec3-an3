@@ -1,34 +1,40 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+import json
+import requests
+import os
 
-# Load the Hugging Face model dynamically
-MODEL_NAME = "msc-smart-contract-auditing/deepseek-coder-6.7b-vulnerability-detection"
+# Hugging Face API Endpoint
+HF_API_URL = "https://api-inference.huggingface.co/models/msc-smart-contract-auditing/deepseek-coder-6.7b-vulnerability-detection"
+HF_API_KEY = os.getenv("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")  # Store your API key securely
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# Headers for the API request
+HEADERS = {"Authorization": f"Bearer {HF_API_KEY}"}
 
-# Load the model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device)
-
-def verify_vulnerabilities(contract_code: str, scanner_results: dict):
+def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     """
-    Uses the AI model to analyze and verify vulnerabilities detected by Slither & Mythril.
+    Sends the smart contract and scanner results to Hugging Face for AI verification.
     """
     prompt = f"""
-    Below is a Solidity smart contract. Review the code and verify if the vulnerabilities detected are valid.
-
-    Contract Code:
+    You are a Solidity security expert. Given the contract code below:
+    
     {contract_code}
-
-    Scanner Findings:
-    {scanner_results}
-
-    If you find additional vulnerabilities missed by the scanner, list them. Otherwise, confirm the existing results.
+    
+    And the following vulnerability findings:
+    {json.dumps(scanner_results, indent=2)}
+    
+    Tasks:
+    1. Verify if each reported issue is valid.
+    2. Identify false positives.
+    3. Highlight additional missed vulnerabilities.
+    4. Provide brief reasoning.
+    
+    Output findings in a structured JSON format.
     """
     
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    output = model.generate(**inputs, max_length=1024)
+    payload = {"inputs": prompt}
     
-    response = tokenizer.decode(output[0], skip_special_tokens=True)
-    
-    return {"AI_Analysis": response}
+    try:
+        response = requests.post(HF_API_URL, headers=HEADERS, json=payload)
+        response.raise_for_status()  # Raise error if request fails
+        return response.json()  # Return AI-generated vulnerability report
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
