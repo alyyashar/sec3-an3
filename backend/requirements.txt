@@ -2,7 +2,7 @@ aiohappyeyeballs==2.4.6
 aiohttp==3.11.12
 aiosignal==1.3.2
 annotated-types==0.7.0
-anyio==4.8.0
+anyio==3.11.1          # Updated to be <4.0.0 for FastAPI compatibility
 attrs==25.1.0
 bitarray==3.0.0
 certifi==2025.1.31
@@ -18,7 +18,7 @@ eth-rlp==2.2.0
 eth-typing==5.1.0
 eth-utils==5.2.0
 eth_abi==5.2.0
-fastapi==0.103.1
+fastapi==0.105.1       # Upgraded for pydantic v2 support
 frozenlist==1.5.0
 h11==0.14.0
 hexbytes==1.3.0
@@ -27,7 +27,7 @@ multidict==6.1.0
 parsimonious==0.10.0
 propcache==0.2.1
 pycryptodome==3.21.0
-pydantic==2.2.1
+pydantic==2.2.1       # Required by eth-account; now compatible with FastAPI 0.105.1
 pydantic_core==2.27.2
 pyunormalize==16.0.0
 regex==2024.11.6
