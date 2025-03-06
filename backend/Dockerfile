@@ -27,10 +27,14 @@ RUN npm init -y
 RUN npm install @openzeppelin/contracts@3.4.2 --prefix ./oz-3.4.2
 RUN npm install @openzeppelin/contracts@4.9.3 --prefix ./oz-4.9.3
 
-# Download Llama-3.2-3B Model (~3GB)
+# Install llama-stack CLI
+RUN pip install --no-cache-dir llama-stack -U
+
+# Ensure models directory exists
 RUN mkdir -p /app/models
-RUN curl -L -o /app/models/llama-3.2-3B.gguf \
-    "https://llama3-2-lightweight.llamameta.net/*?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoidzVqbW1yangybHl4NDB3Z3A0N2p0cTd2IiwiUmVzb3VyY2UiOiJodHRwczpcL1wvbGxhbWEzLTItbGlnaHR3ZWlnaHQubGxhbWFtZXRhLm5ldFwvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc0MTQwMTA1Nn19fV19&Signature=uRa03sDQW71b0RjfGuX2JEW7AWhIquggFnYCIZ3k24387yYllZS9rYRTHnfSB9fSd3Jy-9-B2gXf0tk6nFwydgRQkvVS5Vn7-Ot6RlUEZKkVm6tyDxZfK8a3sp9TvpU06jpoZ0-YbH4BqFPd-%7EEPbl3XM7Sk66EZWG3BQURGaMMoxPPVkqbCnvjFnhAY6-QMaR2U%7EBlO62A8otJbayMvfdO45HWO1G3l6meCRmTzaDl6OloMQNbtgvfrYVKcVOR0xAC0hID37Eq%7ECg8smcRRAzxYfutExXSKIPnQVxpTK3S%7EXektGOS9WkPL92NHz9Owzz3pVP5jVlHohGnU%7EBycSA__&Key-Pair-Id=K15QRJLYKIFSLZ&Download-Request-ID=657491556741419"
+
+# Download Llama 3.2-3B model
+RUN llama model download --source meta --model-id Llama3.2-3B --output /app/models/llama-3.2-3b.gguf
 
 # Copy your backend code
 COPY . .
