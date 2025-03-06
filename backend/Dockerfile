@@ -14,18 +14,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
  && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip before installing anything
+# Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip
 
-# Install Python dependencies
+# Install solc-select, mythril, and slither-analyzer
+RUN pip install --no-cache-dir solc-select mythril slither-analyzer
+
+# Install Python dependencies from requirements.txt
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source code
+# Install multiple OpenZeppelin versions for different Solidity versions
+RUN npm init -y
+RUN npm install @openzeppelin/contracts@3.4.2 --prefix ./oz-3.4.2
+RUN npm install @openzeppelin/contracts@4.9.3 --prefix ./oz-4.9.3
+
+# Copy the rest of your backend code
 COPY . .
 
 # Expose API port
 EXPOSE 8000
 
-# Start FastAPI app with hot reload in development (disable in production)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
