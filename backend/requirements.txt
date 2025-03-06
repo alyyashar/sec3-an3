@@ -27,8 +27,8 @@ multidict==6.1.0
 parsimonious==0.10.0
 propcache==0.2.1
 pycryptodome==3.21.0
-pydantic==2.2.1       # Required by eth-account; now compatible with FastAPI 0.105.1
-pydantic_core==2.27.2
+pydantic==2.2.1       # Required by eth-account
+pydantic_core==2.6.1  # Matched to be compatible with pydantic 2.2.1
 pyunormalize==16.0.0
 regex==2024.11.6
 requests==2.32.3
