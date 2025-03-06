@@ -18,7 +18,7 @@ eth-rlp==2.2.0
 eth-typing==5.1.0
 eth-utils==5.2.0
 eth_abi==5.2.0
-fastapi==0.115.9       # Updated for stability
+fastapi==0.115.9       # Stable with Pydantic 2.x
 frozenlist==1.5.0
 h11==0.14.0
 hexbytes==1.3.0
@@ -27,7 +27,7 @@ multidict==6.1.0
 parsimonious==0.10.0
 propcache==0.2.1
 pycryptodome==3.21.0
-pydantic==2.10.7       # Updated for compatibility
+pydantic==2.7.1       # Updated for maximum compatibility
 pydantic_core==2.27.2
 pyunormalize==16.0.0
 regex==2024.11.6
@@ -44,4 +44,4 @@ web3==7.8.0
 websockets==13.1
 yarl==1.18.3
 python-multipart
-llama-cpp-python==0.2.60   # Added for Llama-3.2-3B integration
+llama-cpp-python==0.2.60   # Ensures compatibility with Llama-3.2-3B
