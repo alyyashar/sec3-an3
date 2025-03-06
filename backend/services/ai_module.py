@@ -1,25 +1,34 @@
-import json
-from llama_cpp import Llama
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
-# Load the Llama Model
-MODEL_PATH = "/app/models/llama-3.2-3b.gguf"
-llm = Llama(model_path=MODEL_PATH, n_ctx=4096, n_threads=4)
+# Load the Hugging Face model dynamically
+MODEL_NAME = "msc-smart-contract-auditing/deepseek-coder-6.7b-vulnerability-detection"
 
-def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Load the model and tokenizer
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device)
+
+def verify_vulnerabilities(contract_code: str, scanner_results: dict):
+    """
+    Uses the AI model to analyze and verify vulnerabilities detected by Slither & Mythril.
+    """
     prompt = f"""
-    You are a Solidity security expert. Given the contract code below:
+    Below is a Solidity smart contract. Review the code and verify if the vulnerabilities detected are valid.
 
+    Contract Code:
     {contract_code}
 
-    And the following vulnerability findings:
-    {json.dumps(scanner_results, indent=2)}
+    Scanner Findings:
+    {scanner_results}
 
-    Tasks:
-    1. Verify if each reported issue is valid.
-    2. Identify false positives.
-    3. Highlight additional missed vulnerabilities.
-    4. Provide brief reasoning.
+    If you find additional vulnerabilities missed by the scanner, list them. Otherwise, confirm the existing results.
     """
-
-    response = llm(prompt, max_tokens=1024)
-    return response["choices"][0]["text"]
+    
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    output = model.generate(**inputs, max_length=1024)
+    
+    response = tokenizer.decode(output[0], skip_special_tokens=True)
+    
+    return {"AI_Analysis": response}

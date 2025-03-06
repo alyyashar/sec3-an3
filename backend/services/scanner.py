@@ -7,7 +7,7 @@ import os
 from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from services.ai_module import verify_vulnerabilities
+from services.ai_module import verify_vulnerabilities  # Ensure ai_module exists
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -40,11 +40,16 @@ def install_solc_version(version: str):
         subprocess.run(["solc-select", "install", version], check=True)
         subprocess.run(["solc-select", "use", version], check=True)
     except subprocess.CalledProcessError:
-        raise HTTPException(status_code=500, detail="Failed to install/use solc")
+        raise HTTPException(status_code=500, detail=f"Failed to install/use solc version {version}")
 
 def run_mythril(contract_path: str) -> List[Vulnerability]:
     cmd = ["myth", "analyze", contract_path, "-o", "json", "--execution-timeout", "120"]
     proc = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if not proc.stdout.strip():  # Handle empty output
+        logger.warning(f"Mythril did not return any output for {contract_path}")
+        return []
+
     return parse_mythril_output(proc.stdout, contract_path)
 
 def parse_mythril_output(output: str, contract_path: str) -> List[Vulnerability]:
@@ -60,35 +65,53 @@ def parse_mythril_output(output: str, contract_path: str) -> List[Vulnerability]
             ) for issue in data.get("issues", [])
         ]
     except json.JSONDecodeError:
+        logger.error(f"Failed to parse Mythril output: {output}")
         return []
 
 def run_slither(contract_path: str) -> List[Vulnerability]:
     cmd = ["slither", contract_path, "--json", "-"]
     proc = subprocess.run(cmd, capture_output=True, text=True)
+
+    if not proc.stdout.strip():  # Handle empty output
+        logger.warning(f"Slither did not return any output for {contract_path}")
+        return []
+
     return parse_slither_output(proc.stdout)
 
 def parse_slither_output(output: str) -> List[Vulnerability]:
     try:
         data = json.loads(output)
-        return [
-            Vulnerability(
+        vulnerabilities = []
+        for issue in data.get("results", {}).get("detectors", []):
+            location = {}
+            if issue.get("elements") and isinstance(issue["elements"], list):
+                element = issue["elements"][0]
+                if "source_mapping" in element:
+                    location = {
+                        "file": element["source_mapping"].get("filename_relative", "Unknown"),
+                        "line": element["source_mapping"].get("lines", [0])[0]
+                    }
+
+            vulnerabilities.append(Vulnerability(
                 tool="slither",
                 issue=issue["check"],
                 severity=issue.get("impact", "Medium"),
                 description=issue["description"],
-                location={
-                    "file": issue["elements"][0]["source_mapping"]["filename_relative"],
-                    "line": issue["elements"][0]["source_mapping"]["lines"][0]
-                } if issue["elements"] else {}
-            ) for issue in data.get("results", {}).get("detectors", [])
-        ]
+                location=location
+            ))
+
+        return vulnerabilities
+
     except json.JSONDecodeError:
+        logger.error(f"Failed to parse Slither output: {output}")
         return []
 
 def generate_summary(findings: List[Vulnerability]) -> Dict[str, Any]:
     severity_counts = {"High": 0, "Medium": 0, "Low": 0, "Informational": 0, "Error": 0}
+    
     for finding in findings:
-        severity_counts[finding.severity] += 1
+        severity_counts[finding.severity] = severity_counts.get(finding.severity, 0) + 1
+
     return {"total_issues": len(findings), "severity_breakdown": severity_counts}
 
 def perform_scan(file_path: str = None, code: str = None) -> dict:
@@ -107,6 +130,9 @@ def perform_scan(file_path: str = None, code: str = None) -> dict:
             solidity_code = f.read()
 
         solidity_version = extract_solidity_version(solidity_code)
+        if not solidity_version:
+            raise HTTPException(status_code=400, detail="Could not detect Solidity version.")
+
         contract_name = extract_contract_name(solidity_code)
         install_solc_version(solidity_version)
 
@@ -125,6 +151,7 @@ def perform_scan(file_path: str = None, code: str = None) -> dict:
         return {"scanner_results": scanner_results, "ai_verification": ai_verification}
 
     finally:
-        if code:
+        if code and os.path.exists(contract_path):
             os.remove(contract_path)
+        if code and os.path.exists(temp_dir):
             os.rmdir(temp_dir)
