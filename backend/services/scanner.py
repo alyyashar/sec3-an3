@@ -7,7 +7,7 @@ import os
 from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from ai_module import verify_vulnerabilities
+from services.ai_module import verify_vulnerabilities
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
