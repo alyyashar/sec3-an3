@@ -37,10 +37,31 @@ def extract_contract_name(code: str) -> str:
 
 def install_solc_version(version: str):
     try:
-        subprocess.run(["solc-select", "install", version], check=True)
-        subprocess.run(["solc-select", "use", version], check=True)
-    except subprocess.CalledProcessError:
-        raise HTTPException(status_code=500, detail=f"Failed to install/use solc version {version}")
+        result = subprocess.run(["solc-select", "versions"], capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"solc-select versions failed: stdout='{result.stdout}', stderr='{result.stderr}'")
+            raise HTTPException(status_code=500, detail=f"solc-select is not working properly: {result.stderr or 'No error output'}")
+        installed_versions = result.stdout
+        logger.info(f"Installed versions: {installed_versions}")
+        if version not in installed_versions:
+            logger.info(f"Installing Solidity {version}...")
+            install_proc = subprocess.run(["solc-select", "install", version], capture_output=True, text=True)
+            if install_proc.returncode != 0:
+                logger.error(f"Failed installing solc {version}: stdout='{install_proc.stdout}', stderr='{install_proc.stderr}'")
+                raise HTTPException(status_code=500, detail=f"Failed installing solc {version}: {install_proc.stderr or 'No error output'}")
+        logger.info(f"Switching to Solidity {version}...")
+        use_proc = subprocess.run(["solc-select", "use", version], capture_output=True, text=True)
+        if use_proc.returncode != 0:
+            logger.error(f"Failed switching to solc {version}: stdout='{use_proc.stdout}', stderr='{use_proc.stderr}'")
+            raise HTTPException(status_code=500, detail=f"Failed switching to solc {version}: {use_proc.stderr or 'No error output'}")
+        current_version = subprocess.run(["solc", "--version"], capture_output=True, text=True)
+        if current_version.returncode != 0:
+            logger.error(f"solc --version failed: stdout='{current_version.stdout}', stderr='{current_version.stderr}'")
+            raise HTTPException(status_code=500, detail=f"Failed to verify solc version: {current_version.stderr or 'No error output'}")
+        logger.info(f"Current solc version: {current_version.stdout}")
+    except FileNotFoundError:
+        logger.error("solc-select not found in PATH")
+        raise HTTPException(status_code=500, detail="solc-select not found in PATH")
 
 def run_mythril(contract_path: str) -> List[Vulnerability]:
     cmd = ["myth", "analyze", contract_path, "-o", "json", "--execution-timeout", "120"]
