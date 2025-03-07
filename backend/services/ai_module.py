@@ -1,10 +1,16 @@
+
 import json
 import requests
 import os
 
 # Hugging Face API Endpoint
 HF_API_URL = "https://api-inference.huggingface.co/models/msc-smart-contract-auditing/deepseek-coder-6.7b-vulnerability-detection"
-HF_API_KEY = os.getenv("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")  # Store your API key securely
+
+# Ensure the API key is correctly fetched
+HF_API_KEY = os.getenv("HF_API_KEY")  # Load from environment variables
+
+if not HF_API_KEY:
+    raise ValueError("Hugging Face API key is missing! Set HF_API_KEY as an environment variable.")
 
 # Headers for the API request
 HEADERS = {"Authorization": f"Bearer {HF_API_KEY}"}
