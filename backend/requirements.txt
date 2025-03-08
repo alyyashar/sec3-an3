@@ -49,3 +49,4 @@ transformers
 peft
 huggingface_hub
 together
+python-dotenv

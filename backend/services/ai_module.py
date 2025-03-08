@@ -1,3 +1,4 @@
+import os
 import json
 from together import Together
 
@@ -29,25 +30,27 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
         {"role": "user", "content": prompt}
     ]
 
-    # Provide your Together API key here
-    together_api_key = "7f73e7ae95aa172946e4b3180f0f4ef89beb9d264cdd273d7040792e267bf1ab"
+    # Read your Together API key from the environment (Railway)
+    together_api_key = os.getenv("TOGETHER_API_KEY")
 
-    # Initialize the Together client with your API key
-    with Together(api_key=together_api_key) as client:
-        # Create a streaming chat completion
-        stream = client.chat.completions.create(
-            model="meta-llama/Llama-3.2-3B-Instruct-Turbo-Free",
-            messages=messages,
-            temperature=0.7,
-            max_tokens=100,
-            stream=True
-        )
+    # Initialize the Together client
+    client = Together()
+    client.api_key = together_api_key
 
-        # Collect the chunks from the streaming response
-        response_text = ""
-        for chunk in stream:
-            delta_content = chunk.choices[0].delta.get("content", "")
-            response_text += delta_content
+    # Create a streaming chat completion
+    stream = client.chat.completions.create(
+        model="meta-llama/Llama-3.2-3B-Instruct-Turbo-Free",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=100,
+        stream=True
+    )
+
+    # Collect the chunks from the streaming response
+    response_text = ""
+    for chunk in stream:
+        delta_content = chunk.choices[0].delta.get("content", "")
+        response_text += delta_content
 
     # Return the final assembled response
     return response_text
