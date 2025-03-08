@@ -1,49 +1,53 @@
 import json
 import os
-from huggingface_hub import InferenceClient
+import requests
 
-# Hugging Face API Key
+# Hugging Face API Configuration
+HF_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B"
 HF_API_KEY = "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"  # Replace with your actual API Key
 
-# Create Inference Client
-client = InferenceClient(
-    provider="novita",
-    api_key=HF_API_KEY
-)
+# Headers for the API request
+HEADERS = {
+    "Authorization": f"Bearer {HF_API_KEY}",
+    "Content-Type": "application/json"
+}
 
 def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     """
-    Uses DeepSeek-V3 via Hugging Face Inference API for smart contract vulnerability verification.
+    Uses Llama-3.2-3B via Hugging Face Inference API for smart contract vulnerability verification.
     """
-    messages = [
-        {
-            "role": "user",
-            "content": f"""
-            You are a Solidity security expert. Given the contract code below:
-            
-            {contract_code}
-            
-            And the following vulnerability findings:
-            {json.dumps(scanner_results, indent=2)}
-            
-            Tasks:
-            1. Verify if each reported issue is valid.
-            2. Identify false positives.
-            3. Highlight additional missed vulnerabilities.
-            4. Provide brief reasoning.
+    prompt = f"""
+    You are a Solidity security expert. Given the contract code below:
+    
+    {contract_code}
+    
+    And the following vulnerability findings:
+    {json.dumps(scanner_results, indent=2)}
+    
+    Tasks:
+    1. Verify if each reported issue is valid.
+    2. Identify false positives.
+    3. Highlight additional missed vulnerabilities.
+    4. Provide brief reasoning.
 
-            Output findings in a structured JSON format.
-            """
+    Output findings in a structured JSON format.
+    """
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 500,
+            "temperature": 0.7
         }
-    ]
+    }
     
     try:
-        completion = client.chat.completions.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=messages,
-            max_tokens=500
-        )
-        return completion.choices[0].message["content"]
-    
-    except Exception as e:
+        response = requests.post(HF_API_URL, headers=HEADERS, json=payload)
+        response.raise_for_status()  # Raise an error if the request fails
+        result = response.json()
+        
+        # Extract and return the generated text
+        return result[0]["generated_text"] if isinstance(result, list) else result
+
+    except requests.exceptions.RequestException as e:
         return {"error": str(e)}
