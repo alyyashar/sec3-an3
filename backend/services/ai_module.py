@@ -36,7 +36,7 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     payload = {
         "inputs": prompt,
         "parameters": {
-            "max_new_tokens": 500,
+            "max_new_tokens": 100,
             "temperature": 0.7
         }
     }
