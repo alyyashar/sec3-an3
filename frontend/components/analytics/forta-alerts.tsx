@@ -60,7 +60,7 @@ export default function LiveSmartContractExploitTracker() {
   };
 
   return (
-    <Card className="bg-[#242424] border-none rounded-xl overflow-hidden">
+    <Card className=" border-none rounded-xl overflow-hidden">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>

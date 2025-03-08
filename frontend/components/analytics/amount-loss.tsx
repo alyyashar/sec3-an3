@@ -71,7 +71,7 @@ const TotalAmountLost = () => {
   };
 
   return (
-    <Card className="bg-[#242424] border-none rounded-xl overflow-hidden">
+    <Card className="border-none rounded-xl overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2 text-white">
           <DollarSign className="h-5 w-5 text-red-400" />
