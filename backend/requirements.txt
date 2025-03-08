@@ -47,3 +47,5 @@ llama-cpp-python==0.2.60
 torch
 transformers
 peft
+huggingface_hub
+together
