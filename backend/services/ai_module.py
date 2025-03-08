@@ -4,7 +4,7 @@ import requests
 
 # Hugging Face API Configuration
 HF_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B"
-HF_API_KEY = "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"  # Replace with your actual API Key
+HF_API_KEY = "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"  # Replace with your actual API Key
 
 # Headers for the API request
 HEADERS = {
