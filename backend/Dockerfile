@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 # Install solc-select, mythril, and slither-analyzer
-RUN pip install --no-cache-dir solc-select mythril slither-analyzer
+RUN pip install --no-cache-dir solc-select mythril slither-analyzer together
 
 # Install Python dependencies from requirements.txt
 COPY requirements.txt .
