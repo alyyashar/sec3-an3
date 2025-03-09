@@ -48,5 +48,5 @@ torch
 transformers
 peft
 huggingface_hub
-together==1.4.1
+together
 python-dotenv
