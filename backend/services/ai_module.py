@@ -3,20 +3,20 @@ import json
 import logging
 from together import Together
 
-# Configure logging to show debug-level messages
+# Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
+def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     """
-    Uses Llama-3.2-3B-Instruct-Turbo-Free via the Together Python library
-    for smart contract vulnerability verification.
+    Uses Together AI's chat completion API with Llama-3.3-70B-Instruct-Turbo-Free
+    to verify smart contract vulnerability findings.
     """
     logging.debug("Starting verify_vulnerabilities function.")
 
-    # Construct your prompt
+    # Construct chat prompt
     prompt = f"""
     You are a Solidity security expert. Given the contract code below:
     
@@ -29,40 +29,45 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     1. Verify if each reported issue is valid.
     2. Identify false positives.
     3. Highlight additional missed vulnerabilities.
-    4. Provide brief reasoning.
-
-    Output findings in a structured JSON format.
+    4. Provide reasoning in structured JSON format.
     """
     logging.debug(f"Constructed prompt:\n{prompt}")
 
-    # Read your Together API key from the environment (Railway)
+    # Prepare chat messages
+    messages = [{"role": "user", "content": prompt}]
+    logging.debug(f"Prepared chat messages: {messages}")
+
+    # Read API key from environment
     together_api_key = os.getenv("TOGETHER_API_KEY")
     if not together_api_key:
-        logging.error("TOGETHER_API_KEY environment variable not set. Ensure it is configured in Railway.")
-        return "Error: TOGETHER_API_KEY environment variable not set."
-    logging.debug(f"Read Together API key from environment: {together_api_key}")
-
-    # Initialize the Together client
-    client = Together()
-    client.api_key = together_api_key
-    logging.debug("Initialized Together client and set the API key.")
+        logging.error("TOGETHER_API_KEY environment variable not set.")
+        return {"error": "TOGETHER_API_KEY environment variable not set."}
+    
+    logging.debug("Initializing Together client...")
+    client = Together(api_key=together_api_key)
 
     try:
-        # Create a completion request using the legacy completions API
-        logging.debug("Creating completion request...")
-        response = client.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-            prompt=prompt,
+        # Create a chat completion request
+        logging.debug("Sending request to Together API...")
+        response = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+            messages=messages,
             temperature=0.7,
-            max_tokens=100,
+            max_tokens=500
         )
-        logging.debug(f"Response received: {response}")
+        
+        # Extract text response
+        raw_text = response.choices[0].message.content
+        logging.debug(f"Raw generated text: {raw_text}")
 
-        # Extract and return the generated text
-        generated_text = response.choices[0].text
-        logging.debug(f"Final generated text: {generated_text}")
-        return generated_text
+        # Convert to JSON
+        parsed_output = json.loads(raw_text)
+        return parsed_output
+
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON parsing error: {e}")
+        return {"error": "Failed to parse JSON response from AI"}
 
     except Exception as e:
-        logging.error(f"Error during verify_vulnerabilities: {e}", exc_info=True)
-        return f"Error: {str(e)}"
+        logging.error(f"Error during verify_vulnerabilities: {e}")
+        return {"error": str(e)}
