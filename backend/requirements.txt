@@ -48,5 +48,5 @@ torch
 transformers
 peft
 huggingface_hub
-together
+git+https://github.com/togethercomputer/together-python
 python-dotenv
