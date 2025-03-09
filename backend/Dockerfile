@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 # Install solc-select, mythril, and slither-analyzer
-RUN pip install --no-cache-dir solc-select mythril slither-analyzer together
+RUN pip install --no-cache-dir solc-select mythril slither-analyzer
 
 # Install Python dependencies from requirements.txt
 COPY requirements.txt .
@@ -28,6 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN npm init -y
 RUN npm install @openzeppelin/contracts@3.4.2 --prefix ./oz-3.4.2
 RUN npm install @openzeppelin/contracts@4.9.3 --prefix ./oz-4.9.3
+
 
 # Copy the rest of your backend code
 COPY . .

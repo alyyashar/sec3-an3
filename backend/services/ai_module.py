@@ -51,7 +51,7 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
         # Create a completion request using the legacy completions API
         logging.debug("Creating completion request...")
         response = client.completions.create(
-            model="meta-llama/Llama-3.2-3B-Instruct-Turbo-Free",
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
             prompt=prompt,
             temperature=0.7,
             max_tokens=100,
