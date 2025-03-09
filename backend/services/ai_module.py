@@ -14,7 +14,6 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     Uses Llama-3.2-3B-Instruct-Turbo-Free via the Together Python library
     for smart contract vulnerability verification.
     """
-
     logging.debug("Starting verify_vulnerabilities function.")
 
     # Construct your prompt
@@ -36,13 +35,12 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     """
     logging.debug(f"Constructed prompt:\n{prompt}")
 
-    # Prepare your chat messages
-    messages = [{"role": "user", "content": prompt}]
-    logging.debug(f"Prepared chat messages: {messages}")
-
     # Read your Together API key from the environment (Railway)
     together_api_key = os.getenv("TOGETHER_API_KEY")
-    logging.debug(f"Read Together API key from environment: {together_api_key or 'None'}")
+    if not together_api_key:
+        logging.error("TOGETHER_API_KEY environment variable not set. Ensure it is configured in Railway.")
+        return "Error: TOGETHER_API_KEY environment variable not set."
+    logging.debug(f"Read Together API key from environment: {together_api_key}")
 
     # Initialize the Together client
     client = Together()
@@ -50,25 +48,20 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> str:
     logging.debug("Initialized Together client and set the API key.")
 
     try:
-        # Create a streaming chat completion
-        logging.debug("Creating streaming chat completion request...")
-        stream = client.chat.completions.create(
+        # Create a completion request using the legacy completions API
+        logging.debug("Creating completion request...")
+        response = client.completions.create(
             model="meta-llama/Llama-3.2-3B-Instruct-Turbo-Free",
-            messages=messages,
+            prompt=prompt,
             temperature=0.7,
             max_tokens=100,
-            stream=True
         )
+        logging.debug(f"Response received: {response}")
 
-        # Collect the chunks from the streaming response
-        response_text = ""
-        logging.debug("Collecting response chunks from the streaming response...")
-        for chunk in stream:
-            delta_content = chunk.choices[0].delta.get("content", "")
-            response_text += delta_content
-
-        logging.debug(f"Final response text collected: {response_text}")
-        return response_text
+        # Extract and return the generated text
+        generated_text = response.choices[0].text
+        logging.debug(f"Final generated text: {generated_text}")
+        return generated_text
 
     except Exception as e:
         logging.error(f"Error during verify_vulnerabilities: {e}", exc_info=True)

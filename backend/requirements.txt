@@ -27,7 +27,7 @@ multidict==6.1.0
 parsimonious==0.10.0
 propcache==0.2.1
 pycryptodome==3.21.0
-pydantic==2.6.1   # ✅ Downgraded for compatibility
+pydantic==2.6.1   
 pyunormalize==16.0.0
 regex==2024.11.6
 requests==2.32.3
@@ -48,5 +48,5 @@ torch
 transformers
 peft
 huggingface_hub
-together
+together==1.4.1
 python-dotenv
