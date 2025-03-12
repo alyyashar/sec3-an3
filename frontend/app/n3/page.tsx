@@ -20,7 +20,7 @@ export default function DashboardPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href={"/n3xus"}>
+          <Link href={"/n3xus/dashboard"}>
             <Card className="border-none hover:scale-[1.02] rounded-xl overflow-hidden">
               <div className="h-1 w-full bg-gradient-to-r from-[#4ee2b5] to-[#2a8066]" />
               <CardHeader>

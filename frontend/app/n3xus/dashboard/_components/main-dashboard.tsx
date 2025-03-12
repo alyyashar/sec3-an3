@@ -16,30 +16,18 @@ import {
   BarChart3,
   PieChart,
   LineChart,
+  Activity,
+  Bug,
+  LogOut,
 } from "lucide-react"
-import { AuditHistoryTable } from "@/components/audit-history-table"
-import { VulnerabilityDistribution } from "@/components/vulnerability-distribution"
-import { AuditTimeline } from "@/components/audit-timeline"
-import { RecentAudits } from "@/components/recent-audits"
-import { AuditActivityChart } from "@/components/audit-activity-chart"
+import { AuditHistoryTable } from "@/app/n3xus/_components/audit-history-table"
+import { AuditTimeline } from "@/app/n3xus/_components/audit-timeline"
+import { RecentAudits } from "@/app/n3xus/_components/recent-audits"
+import { ContractAuditTable } from "@/app/n3xus/dashboard/_components/auditTable"
 
 export function MainDashboard() {
   return (
     <div className="flex flex-col">
-      <div className="border-b">
-        <div className="flex h-16 items-center px-4">
-          <div className="ml-auto flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Contract
-            </Button>
-            <Button size="sm">
-              <Shield className="mr-2 h-4 w-4" />
-              New Audit
-            </Button>
-          </div>
-        </div>
-      </div>
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">N3XUS Dashboard</h2>
@@ -55,7 +43,6 @@ export function MainDashboard() {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="audits">Audits</TabsTrigger>
             <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
           </TabsList>
 
@@ -122,26 +109,8 @@ export function MainDashboard() {
               </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <Card className="col-span-4">
-                <CardHeader>
-                  <CardTitle>Audit Activity</CardTitle>
-                  <CardDescription>Number of audits performed over time</CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <AuditActivityChart />
-                </CardContent>
-              </Card>
-
-              <Card className="col-span-3">
-                <CardHeader>
-                  <CardTitle>Vulnerability Distribution</CardTitle>
-                  <CardDescription>Breakdown by severity level</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <VulnerabilityDistribution />
-                </CardContent>
-              </Card>
+            <div className="">
+              <ContractAuditTable />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -277,18 +246,6 @@ export function MainDashboard() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="audits" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Audit History</CardTitle>
-                <CardDescription>Complete history of smart contract audits</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AuditHistoryTable />
               </CardContent>
             </Card>
           </TabsContent>

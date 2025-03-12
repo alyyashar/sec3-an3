@@ -23,22 +23,20 @@ import {
   Brain,
   ShieldCheck,
 } from "lucide-react"
-import { ProjectList } from "@/components/security-portal/project-list"
-import { VulnerabilityAnalysis } from "@/components/security-portal/vulnerability-analysis"
-import { SecurityCopilot } from "@/components/security-portal/security-copilot"
-import { RiskScoreCard } from "@/components/security-portal/risk-score-card"
-import { VerificationStatus } from "@/components/security-portal/verification-status"
+import { ProjectList } from "@/app/n3xus/security-portal/_components/security-portal/project-list"
+import { VulnerabilityAnalysis } from "@/app/n3xus/security-portal/_components/security-portal/vulnerability-analysis"
+import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/security-portal/security-copilot"
+import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card"
+import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status"
 import { AppSidebar } from "@/components/app-sidebar"
 
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<string | null>("project1")
 
   return (
-    <div className="flex h-screen bg-background">
-      <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="border-b">
-          <div className="flex h-16 items-center px-4 justify-between">
+          <div className="flex my-4 h-16 items-center px-4 justify-between">
             <h1 className="text-xl font-bold">N3XUS AI-Powered Security Portal</h1>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm">
@@ -129,16 +127,16 @@ export default function SecurityPortal() {
                             <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
                             <AlertTriangle className="h-4 w-4 text-red-500" />
                           </CardHeader>
-                          <CardContent>
+                          <CardContent className="flex gap-8">
                             <div className="text-2xl font-bold">7</div>
-                            <div className="flex mt-2 space-x-1">
-                              <Badge variant="destructive" className="text-xs">
+                            <div className="flex flex-wrap space-x-1 gap-2">
+                              <Badge variant="destructive" className="text-xs flex-1 min-w-max h-6">
                                 2 Critical
                               </Badge>
-                              <Badge variant="outline" className="text-xs border-orange-500 text-orange-500">
+                              <Badge variant="outline" className="text-xs flex-1 min-w-max h-6 border-orange-500 text-orange-500">
                                 3 High
                               </Badge>
-                              <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-500">
+                              <Badge variant="outline" className="text-xs flex-1 min-w-max h-6 border-yellow-500 text-yellow-500">
                                 2 Medium
                               </Badge>
                             </div>
@@ -168,7 +166,7 @@ export default function SecurityPortal() {
                         <Progress value={75} className="h-2" />
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2">
+                      {/* <div className="grid gap-4 md:grid-cols-2">
                         <Card>
                           <CardHeader>
                             <CardTitle>AI-Driven Vulnerability Analysis</CardTitle>
@@ -196,7 +194,7 @@ export default function SecurityPortal() {
                             </div>
                           </CardContent>
                         </Card>
-                      </div>
+                      </div> */}
 
                       <Card>
                         <CardHeader>
@@ -340,7 +338,6 @@ export default function SecurityPortal() {
           </div>
         </div>
       </div>
-    </div>
   )
 }
 
