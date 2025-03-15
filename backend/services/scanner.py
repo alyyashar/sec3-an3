@@ -8,6 +8,8 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
 from services.ai_module import verify_vulnerabilities  # Ensure ai_module exists
+from services.web3_fetch import fetch_contract_source  # Import the contract fetching module
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -148,7 +150,14 @@ def generate_summary(findings: List[Vulnerability]) -> Dict[str, Any]:
 
     return {"total_issues": len(findings), "severity_breakdown": severity_counts}
 
-def perform_scan(file_path: str = None, code: str = None) -> dict:
+def perform_scan(file_path: str = None, code: str = None, contract_address: str = None) -> dict:
+    if contract_address:
+        try:
+            code = fetch_contract_source(contract_address)
+            logger.info(f"Fetched contract from Etherscan: {contract_address}")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
     if code:
         temp_dir = tempfile.mkdtemp()
         contract_path = os.path.join(temp_dir, "contract.sol")

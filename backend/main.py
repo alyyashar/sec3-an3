@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.scan import router as scan_router
 from api.audit import router as audit_router
 
-app = FastAPI(title="KONSEC API", version="1.0.0")
+app = FastAPI(title="N3XUS API", version="1.0.0")
 
 origins = ["http://localhost:3000", "https://sec3-an3.vercel.app"]
 app.add_middleware(
