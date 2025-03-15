@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile.slither
     container_name: slither
-    # If you want to keep it always running, define an entrypoint or do nothing
 
   mythril:
     build:
@@ -23,5 +22,8 @@ services:
     depends_on:
       - slither
       - mythril
-    # The API container can call slither or mythril containers via hostname
-    # e.g. 'slither' or 'mythril' in the Docker network
+    env_file:
+      - .env  # Load environment variables (Etherscan, OpenAI keys, etc.)
+    volumes:
+      - ./tmp_data:/app/tmp_data  # Ensure temp storage persists across restarts
+    restart: unless-stopped  # Ensures the API restarts if it crashes

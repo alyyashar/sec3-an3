@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.scan import router as scan_router
-from api.audit import router as audit_router
+from api.scan import router as scan_router  # Only scan.py is needed now
 
 app = FastAPI(title="N3XUS API", version="1.0.0")
 
@@ -14,9 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(scan_router, prefix="/api/scan", tags=["scan"])
-app.include_router(audit_router, prefix="/api/audit", tags=["audit"])
+app.include_router(scan_router, prefix="/api/scan", tags=["scan"])  
 
 @app.get("/")
 def home():
-    return {"message": "Welcome to KONSEC API"}
+    return {"message": "Welcome to N3XUS API"}
