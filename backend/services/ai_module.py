@@ -13,7 +13,6 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     """
     Uses Together AI to verify smart contract vulnerability findings.
     """
-
     logging.debug("Starting verify_vulnerabilities function.")
 
     # Construct chat prompt
@@ -30,8 +29,8 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     2. Identify false positives.
     3. Highlight additional missed vulnerabilities.
     4. Provide reasoning in structured JSON format.
-    
-    Respond only in valid JSON format without any additional text or explanations.
+
+    Respond **ONLY** with a **valid JSON object**, without explanations, markdown, or additional text.
     """
 
     logging.debug(f"Constructed prompt:\n{prompt}")
@@ -56,27 +55,29 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
             model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
             messages=messages,
             temperature=0.7,
-            max_tokens=500
+            max_tokens=700  # Increased to handle full JSON response
         )
         
-        # Extract text response
-        raw_text = response.choices[0].message.content
+        # Extract raw text response
+        raw_text = response.choices[0].message.content.strip()
         logging.debug(f"Raw generated text: {raw_text}")
 
-        # Extract only JSON from the response
-        json_match = re.search(r"```json\n(.*?)\n```", raw_text, re.DOTALL)
-        if json_match:
-            json_text = json_match.group(1).strip()  # Extract only the JSON part
-        else:
-            json_text = raw_text.strip()  # If no markdown format, assume plain JSON
-        
-        # Convert to JSON
-        parsed_output = json.loads(json_text)
-        return parsed_output
+        # Step 1: Remove Markdown-style formatting (```json ... ```)
+        json_text = re.sub(r"```json\n?|```", "", raw_text).strip()
 
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON parsing error: {e}")
-        return {"error": "Failed to parse JSON response from AI"}
+        # Step 2: Fix potential extra `{` at the start
+        json_text = re.sub(r"^\{+\s*", "{", json_text)  # Replace multiple `{` with a single `{`
+
+        # Step 3: Handle invalid trailing commas (common AI mistake)
+        json_text = re.sub(r",\s*([\]})])", r"\1", json_text)  # Remove trailing commas
+
+        # Step 4: Ensure JSON is correctly formatted
+        try:
+            parsed_output = json.loads(json_text)
+            return parsed_output
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON parsing error, AI response:\n{json_text}")
+            return {"error": "Failed to parse JSON response from AI", "raw_text": json_text}
 
     except Exception as e:
         logging.error(f"Error during verify_vulnerabilities: {e}")
