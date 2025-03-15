@@ -11,9 +11,9 @@ logging.basicConfig(
 
 def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     """
-    Uses Together AI's chat completion API with Llama-3.3-70B-Instruct-Turbo-Free
-    to verify smart contract vulnerability findings.
+    Uses Together AI to verify smart contract vulnerability findings.
     """
+
     logging.debug("Starting verify_vulnerabilities function.")
 
     # Construct chat prompt
@@ -30,7 +30,10 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     2. Identify false positives.
     3. Highlight additional missed vulnerabilities.
     4. Provide reasoning in structured JSON format.
+    
+    Respond only in valid JSON format without any additional text or explanations.
     """
+
     logging.debug(f"Constructed prompt:\n{prompt}")
 
     # Prepare chat messages
@@ -60,8 +63,15 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
         raw_text = response.choices[0].message.content
         logging.debug(f"Raw generated text: {raw_text}")
 
+        # Extract only JSON from the response
+        json_match = re.search(r"```json\n(.*?)\n```", raw_text, re.DOTALL)
+        if json_match:
+            json_text = json_match.group(1).strip()  # Extract only the JSON part
+        else:
+            json_text = raw_text.strip()  # If no markdown format, assume plain JSON
+        
         # Convert to JSON
-        parsed_output = json.loads(raw_text)
+        parsed_output = json.loads(json_text)
         return parsed_output
 
     except json.JSONDecodeError as e:
