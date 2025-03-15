@@ -71,3 +71,62 @@ def verify_vulnerabilities(contract_code: str, scanner_results: dict) -> dict:
     except Exception as e:
         logging.error(f"Error during verify_vulnerabilities: {e}")
         return {"error": str(e)}
+
+def generate_fix(vulnerability: str, affected_code: str, full_contract: str) -> str:
+    """
+    Uses Together AI to generate a secure fix for a detected vulnerability.
+    """
+    logging.debug("Starting generate_fix function.")
+
+    # Construct chat prompt
+    prompt = f"""
+    You are a Solidity security expert. The following smart contract has a vulnerability:
+    
+    Vulnerability Type: {vulnerability}
+    
+    Affected Code:
+    ```solidity
+    {affected_code}
+    ```
+    
+    Full Contract Code:
+    ```solidity
+    {full_contract}
+    ```
+    
+    Please provide a fixed version of the affected code snippet while preserving functionality.
+    """
+    logging.debug(f"Constructed prompt:\n{prompt}")
+
+    # Prepare chat messages
+    messages = [{"role": "user", "content": prompt}]
+    logging.debug(f"Prepared chat messages: {messages}")
+
+    # Read API key from environment
+    together_api_key = os.getenv("TOGETHER_API_KEY")
+    if not together_api_key:
+        logging.error("TOGETHER_API_KEY environment variable not set.")
+        return "Error: TOGETHER_API_KEY not set."
+
+    logging.debug("Initializing Together client...")
+    client = Together(api_key=together_api_key)
+
+    try:
+        # Create a chat completion request
+        logging.debug("Sending request to Together API for code fix...")
+        response = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+            messages=messages,
+            temperature=0.5,
+            max_tokens=300
+        )
+
+        # Extract fixed code
+        fixed_code = response.choices[0].message.content
+        logging.debug(f"Generated fixed code: {fixed_code}")
+
+        return fixed_code.strip()
+
+    except Exception as e:
+        logging.error(f"Error during generate_fix: {e}")
+        return f"Error generating fix: {str(e)}"
