@@ -1,4 +1,7 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile
+from sqlalchemy.orm import Session
+from db.database import SessionLocal
+from db.models import AuditResult
 from pydantic import BaseModel
 import tempfile
 import os
@@ -23,9 +26,27 @@ class FixRequest(BaseModel):
     line_number: int
 
 @router.post("/file")
-async def scan_solidity_file(file: UploadFile = File(...)):
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+class ContractAddressInput(BaseModel):
+    contract_address: str
+
+class CodeInput(BaseModel):
+    contract_code: str  # Solidity code as a string
+
+class FixRequest(BaseModel):
+    contract_address: str
+    line_number: int
+
+@router.post("/file")
+async def scan_solidity_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """
-    Scan a Solidity contract file (.sol) uploaded by the user.
+    Scan a Solidity contract file (.sol) uploaded by the user and store results in DB.
     """
     if not file.filename.endswith(".sol"):
         raise HTTPException(status_code=400, detail="Please upload a .sol file")
@@ -35,10 +56,22 @@ async def scan_solidity_file(file: UploadFile = File(...)):
 
     try:
         result = perform_scan(file_path=contract_path)
-        return result
+
+        # Store in DB
+        db_result = AuditResult(
+            contract_name=file.filename,
+            contract_address=None,  # N/A for file uploads
+            scan_results=result
+        )
+        db.add(db_result)
+        db.commit()
+        db.refresh(db_result)
+
+        return {"message": "Analysis completed and stored", "audit_id": str(db_result.id), "result": result}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 @router.post("/code")
 async def scan_solidity_code(request: CodeInput):
     """

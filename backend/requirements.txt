@@ -52,3 +52,4 @@ together==1.2.4
 python-dotenv
 openai
 pytest
+psycopg2-binary
