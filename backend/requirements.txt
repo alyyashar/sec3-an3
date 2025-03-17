@@ -53,3 +53,4 @@ python-dotenv
 openai
 pytest
 psycopg2-binary
+sqlalchemy
