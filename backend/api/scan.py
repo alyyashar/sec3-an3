@@ -10,6 +10,7 @@ from services.scanner import perform_scan
 from services.web3_fetch import fetch_contract_source
 from services.file_manager import FileManager
 from services.ai_module import generate_fix
+from db.database import get_db  # Make sure you imported get_db if using DB session
 
 router = APIRouter()
 file_manager = FileManager()
