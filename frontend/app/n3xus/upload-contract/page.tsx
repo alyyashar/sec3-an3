@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Upload, FileCode, AlertTriangle, Code } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +13,8 @@ export default function UploadContract() {
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [codeInput, setCodeInput] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [result, setResult] = useState(null) // store scan result
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -36,6 +37,39 @@ export default function UploadContract() {
     }
   }
 
+  const handleFileUpload = async () => {
+    if (!file) {
+      alert("Please select a contract file to analyze.")
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    setUploading(true)
+
+    try {
+      console.log("Uploading and analyzing contract...")
+
+      const response = await fetch("http://localhost:8000/api/scan/file", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Failed to upload contract for analysis")
+
+      const data = await response.json()
+      console.log("Analysis result:", data)
+      setResult(data) // Store result to display
+      alert("Analysis completed successfully! Check below for results.")
+    } catch (error) {
+      console.error("Error during analysis:", error)
+      alert("An error occurred during contract analysis.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="text-white p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -44,23 +78,20 @@ export default function UploadContract() {
         <Card className="bg-[#1a1a1a] border-[#333]">
           <CardHeader>
             <CardTitle>Contract Upload</CardTitle>
-            <CardDescription>
-              Upload your smart contract file or paste code directly for security analysis
-            </CardDescription>
+            <CardDescription>Upload your smart contract file or paste code directly for security analysis</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="upload" className="space-y-4">
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="upload" className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload File
+                  <Upload className="h-4 w-4" /> Upload File
                 </TabsTrigger>
                 <TabsTrigger value="paste" className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  Paste Code
+                  <Code className="h-4 w-4" /> Paste Code
                 </TabsTrigger>
               </TabsList>
 
+              {/* ---- UPLOAD FILE TAB ---- */}
               <TabsContent value="upload">
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center ${
@@ -82,9 +113,7 @@ export default function UploadContract() {
                     accept=".sol"
                     onChange={(e) => {
                       const files = e.target.files
-                      if (files?.length) {
-                        setFile(files[0])
-                      }
+                      if (files?.length) setFile(files[0])
                     }}
                     id="contract-upload"
                   />
@@ -109,13 +138,16 @@ export default function UploadContract() {
                     </div>
 
                     <div className="flex justify-end space-x-3">
-                      <Button variant="outline">Cancel</Button>
-                      <Button>Start Analysis</Button>
+                      <Button variant="outline" onClick={() => setFile(null)}>Cancel</Button>
+                      <Button onClick={handleFileUpload} disabled={uploading}>
+                        {uploading ? "Analyzing..." : "Start Analysis"}
+                      </Button>
                     </div>
                   </div>
                 )}
               </TabsContent>
 
+              {/* ---- PASTE CODE TAB ---- */}
               <TabsContent value="paste">
                 <div className="space-y-4">
                   <div className="p-4 border border-[#333] rounded-lg bg-[#121212]">
@@ -140,7 +172,7 @@ export default function UploadContract() {
                     <Button variant="outline" onClick={() => setCodeInput("")} disabled={!codeInput}>
                       Clear
                     </Button>
-                    <Button disabled={!codeInput}>Start Analysis</Button>
+                    <Button disabled={!codeInput}>Start Analysis</Button> {/* We will hook paste code API later */}
                   </div>
                 </div>
               </TabsContent>
@@ -148,41 +180,19 @@ export default function UploadContract() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#1a1a1a] border-[#333]">
-          <CardHeader>
-            <CardTitle>Upload Guidelines</CardTitle>
-            <CardDescription>Important information about contract uploads</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Supported File Types</h4>
-                  <p className="text-sm text-muted-foreground">Only Solidity (.sol) files are supported at this time</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">File Size Limit</h4>
-                  <p className="text-sm text-muted-foreground">Maximum file size is 10MB per contract</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Processing Time</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Analysis typically takes 2-5 minutes depending on contract complexity
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ---- RESULT DISPLAY ---- */}
+        {result && (
+          <Card className="bg-[#1a1a1a] border-[#333] mt-6">
+            <CardHeader>
+              <CardTitle>Analysis Results</CardTitle>
+              <CardDescription>Detailed report generated from AI and tools</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
 }
-
