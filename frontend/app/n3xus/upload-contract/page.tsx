@@ -51,7 +51,7 @@ export default function UploadContract() {
     try {
       console.log("Uploading and analyzing contract...")
 
-      const response = await fetch("http://localhost:8000/api/scan/file", {
+      const response = await fetch("https://sec3-an3-production.up.railway.app/api/scan/file", {
         method: "POST",
         body: formData,
       })
