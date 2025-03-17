@@ -4,13 +4,18 @@ from api.scan import router as scan_router  # Only scan.py is needed now
 
 app = FastAPI(title="N3XUS API", version="1.0.0")
 
-origins = ["http://localhost:3000", "https://sec3-an3.vercel.app"]
+origins = [
+    "http://localhost:3000",  # Local dev
+    "https://sec3-an3.vercel.app",  # Production Vercel domain
+    "https://sec3-an3-ogqm23qse-alyyashars-projects.vercel.app",  # Your Vercel deployment
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,  # Allow frontend domains
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 app.include_router(scan_router, prefix="/api/scan", tags=["scan"])  
