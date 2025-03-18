@@ -1,20 +1,30 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Upload, FileCode, AlertTriangle, Code } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Upload, FileCode, Code, Loader2, Download, Eye } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { useRouter } from "next/navigation"
+
+// Dynamically set API URL based on environment
+const API_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:8000" // ✅ Local FastAPI Server
+    : "https://sec3-an3-production.up.railway.app"; // ✅ Production API
 
 export default function UploadContract() {
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [codeInput, setCodeInput] = useState("")
   const [uploading, setUploading] = useState(false)
-  const [result, setResult] = useState(null) // store scan result
+  const [result, setResult] = useState(null)
+  const [processing, setProcessing] = useState(false)
+  const [auditId, setAuditId] = useState<string | null>(null) // Store audit ID
+  const router = useRouter()
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -47,27 +57,64 @@ export default function UploadContract() {
     formData.append("file", file)
 
     setUploading(true)
+    setProcessing(true) // Show processing UI
 
     try {
       console.log("Uploading and analyzing contract...")
 
-      const response = await fetch("https://sec3-an3-production.up.railway.app/api/scan/file", {
+      const response = await fetch(`${API_URL}/api/scan/file`, {
         method: "POST",
         body: formData,
+        headers: {
+          "Accept": "application/json",
+        },
       })
 
       if (!response.ok) throw new Error("Failed to upload contract for analysis")
 
       const data = await response.json()
-      console.log("Analysis result:", data)
-      setResult(data) // Store result to display
-      alert("Analysis completed successfully! Check below for results.")
+      console.log("Analysis started. Audit ID:", data.audit_id)
+
+      setAuditId(data.audit_id)
+      pollForResults(data.audit_id) // Start polling for results
     } catch (error) {
       console.error("Error during analysis:", error)
       alert("An error occurred during contract analysis.")
+      setProcessing(false)
     } finally {
       setUploading(false)
     }
+  }
+
+  const pollForResults = async (auditId: string) => {
+    let attempts = 0
+    const maxAttempts = 10
+
+    while (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 3000)) // Poll every 3 seconds
+
+      try {
+        const response = await fetch(`${API_URL}/api/scan/results`)
+        if (!response.ok) throw new Error("Failed to fetch scan results")
+
+        const results = await response.json()
+        const auditResult = results.find((res: any) => res.id === auditId)
+
+        if (auditResult) {
+          console.log("Audit completed:", auditResult)
+          setResult(auditResult)
+          setProcessing(false)
+          return
+        }
+      } catch (error) {
+        console.error("Error fetching scan results:", error)
+      }
+
+      attempts++
+    }
+
+    console.warn("Analysis took too long. Please check manually.")
+    setProcessing(false)
   }
 
   return (
@@ -91,7 +138,6 @@ export default function UploadContract() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* ---- UPLOAD FILE TAB ---- */}
               <TabsContent value="upload">
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center ${
@@ -106,17 +152,10 @@ export default function UploadContract() {
                   <h3 className="text-lg font-semibold mb-2">
                     {file ? file.name : "Drag and drop your contract file here"}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-4">or click to select from your computer</p>
-                  <Input
-                    type="file"
-                    className="hidden"
-                    accept=".sol"
-                    onChange={(e) => {
+                  <Input type="file" className="hidden" accept=".sol" onChange={(e) => {
                       const files = e.target.files
                       if (files?.length) setFile(files[0])
-                    }}
-                    id="contract-upload"
-                  />
+                    }} id="contract-upload" />
                   <Button asChild>
                     <label htmlFor="contract-upload">Select File</label>
                   </Button>
@@ -125,16 +164,9 @@ export default function UploadContract() {
                 {file && (
                   <div className="mt-6 space-y-4">
                     <div className="flex items-center justify-between p-4 border border-[#333] rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <FileCode className="w-6 h-6 text-primary" />
-                        <div>
-                          <p className="font-medium">{file.name}</p>
-                          <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
-                        </div>
-                      </div>
-                      <Button variant="destructive" size="sm" onClick={() => setFile(null)}>
-                        Remove
-                      </Button>
+                      <FileCode className="w-6 h-6 text-primary" />
+                      <p className="font-medium">{file.name} ({(file.size / 1024).toFixed(2)} KB)</p>
+                      <Button variant="destructive" size="sm" onClick={() => setFile(null)}>Remove</Button>
                     </div>
 
                     <div className="flex justify-end space-x-3">
@@ -146,49 +178,26 @@ export default function UploadContract() {
                   </div>
                 )}
               </TabsContent>
-
-              {/* ---- PASTE CODE TAB ---- */}
-              <TabsContent value="paste">
-                <div className="space-y-4">
-                  <div className="p-4 border border-[#333] rounded-lg bg-[#121212]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Code className="h-5 w-5 text-primary" />
-                        <h3 className="font-medium">Solidity Code</h3>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {codeInput.length > 0 ? `${codeInput.length} characters` : "No code entered"}
-                      </div>
-                    </div>
-                    <Textarea
-                      placeholder="// Paste your Solidity contract code here..."
-                      className="min-h-[300px] font-mono text-sm bg-[#121212] border-none focus-visible:ring-1 focus-visible:ring-primary"
-                      value={codeInput}
-                      onChange={(e) => setCodeInput(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
-                    <Button variant="outline" onClick={() => setCodeInput("")} disabled={!codeInput}>
-                      Clear
-                    </Button>
-                    <Button disabled={!codeInput}>Start Analysis</Button> {/* We will hook paste code API later */}
-                  </div>
-                </div>
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
 
-        {/* ---- RESULT DISPLAY ---- */}
+        {processing && (
+          <div className="text-center">
+            <Loader2 className="animate-spin h-6 w-6 mx-auto text-primary" />
+            <p className="mt-2 text-sm text-muted-foreground">Processing... Please wait</p>
+          </div>
+        )}
+
         {result && (
           <Card className="bg-[#1a1a1a] border-[#333] mt-6">
             <CardHeader>
-              <CardTitle>Analysis Results</CardTitle>
-              <CardDescription>Detailed report generated from AI and tools</CardDescription>
+              <CardTitle>Analysis Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+              <Button onClick={() => router.push("/n3xus/reports")}>
+                <Eye className="h-4 w-4 mr-2" /> View Reports
+              </Button>
             </CardContent>
           </Card>
         )}
