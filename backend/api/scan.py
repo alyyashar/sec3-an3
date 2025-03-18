@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from db.database import get_db
 from db.models import AuditResult
@@ -13,7 +14,17 @@ router = APIRouter()
 file_manager = FileManager()
 logging.basicConfig(level=logging.INFO)
 
-# Input Models
+# ✅ Add CORS middleware if not present in `main.py`
+def add_cors_middleware(app):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Change to frontend domain for security
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+# ✅ Input Models
 class ContractAddressInput(BaseModel):
     contract_address: str
 
@@ -27,11 +38,9 @@ class FixRequest(BaseModel):
 # ✅ API Endpoint: Upload and Scan Solidity File
 @router.post("/scan/file")
 async def scan_solidity_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """
-    Scan a Solidity contract file (.sol) uploaded by the user and store results in DB.
-    """
+    """ Scan a Solidity contract file (.sol) uploaded by the user and store results in DB. """
     if not file.filename.endswith(".sol"):
-        raise HTTPException(status_code=400, detail="Please upload a .sol file")
+        raise HTTPException(status_code=400, detail="Please upload a valid .sol file")
 
     contract_code = (await file.read()).decode()
     contract_path = file_manager.save_contract(contract_code, "contract")
@@ -39,37 +48,39 @@ async def scan_solidity_file(file: UploadFile = File(...), db: Session = Depends
     try:
         result = perform_scan(file_path=contract_path)
 
-        # Store in DB
+        # Store result in DB
         db_result = AuditResult(
             contract_name=file.filename,
-            contract_address=None,  # N/A for file uploads
+            contract_address=None,
             scan_results=result
         )
         db.add(db_result)
         db.commit()
         db.refresh(db_result)
 
-        return {"message": "Analysis completed and stored", "audit_id": str(db_result.id), "result": result}
+        return {
+            "message": "Analysis completed successfully",
+            "audit_id": str(db_result.id),
+            "result": result
+        }
 
     except Exception as e:
         logging.error(f"Error scanning Solidity file: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # ✅ API Endpoint: Scan Solidity Code Pasted by User
 @router.post("/scan/code")
 async def scan_solidity_code(request: CodeInput, db: Session = Depends(get_db)):
-    """
-    Scan Solidity smart contract code pasted by the user and store results.
-    """
+    """ Scan Solidity smart contract code pasted by the user and store results. """
     if not request.contract_code.strip():
-        raise HTTPException(status_code=400, detail="Code cannot be empty")
+        raise HTTPException(status_code=400, detail="Contract code cannot be empty")
 
     contract_path = file_manager.save_contract(request.contract_code, "contract")
 
     try:
         result = perform_scan(file_path=contract_path)
 
-        # Store in DB
+        # Store result in DB
         db_result = AuditResult(
             contract_name="Pasted Code",
             contract_address=None,
@@ -79,25 +90,27 @@ async def scan_solidity_code(request: CodeInput, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_result)
 
-        return {"message": "Analysis completed and stored", "audit_id": str(db_result.id), "result": result}
+        return {
+            "message": "Analysis completed successfully",
+            "audit_id": str(db_result.id),
+            "result": result
+        }
 
     except Exception as e:
         logging.error(f"Error scanning Solidity code: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-# ✅ API Endpoint: Scan Deployed Smart Contract
+# ✅ API Endpoint: Scan Deployed Smart Contract by Address
 @router.post("/scan/contract")
 async def scan_contract_by_address(data: ContractAddressInput, db: Session = Depends(get_db)):
-    """
-    Scan a deployed contract by fetching its source code from Etherscan.
-    """
+    """ Scan a deployed contract by fetching its source code from Etherscan. """
     try:
         solidity_code = fetch_contract_source(data.contract_address)
         contract_path = file_manager.save_contract(solidity_code, "contract")
 
         result = perform_scan(file_path=contract_path)
 
-        # Store in DB
+        # Store result in DB
         db_result = AuditResult(
             contract_name=data.contract_address,
             contract_address=data.contract_address,
@@ -107,20 +120,22 @@ async def scan_contract_by_address(data: ContractAddressInput, db: Session = Dep
         db.commit()
         db.refresh(db_result)
 
-        return {"message": "Analysis completed and stored", "audit_id": str(db_result.id), "result": result}
+        return {
+            "message": "Analysis completed successfully",
+            "audit_id": str(db_result.id),
+            "result": result
+        }
 
     except HTTPException as e:
         raise e
     except Exception as e:
         logging.error(f"Error scanning contract from Etherscan: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-# ✅ API Endpoint: Apply AI Fix
+# ✅ API Endpoint: Apply AI Fix to Contract Code
 @router.post("/scan/fix")
 async def apply_fix(data: FixRequest):
-    """
-    Apply AI-generated fix to a vulnerability in a contract.
-    """
+    """ Apply AI-generated fix to a vulnerability in a contract. """
     try:
         solidity_code = fetch_contract_source(data.contract_address)
         contract_path = file_manager.save_contract(solidity_code, "contract")
@@ -134,18 +149,16 @@ async def apply_fix(data: FixRequest):
 
     except Exception as e:
         logging.error(f"Error generating fix: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # ✅ API Endpoint: Fetch Scan Results for Dashboard
-@router.get("/results")
+@router.get("/scan/results")
 async def get_scan_results(db: Session = Depends(get_db)):
-    """
-    Fetch latest scan results from the database for display on the dashboard.
-    """
+    """ Fetch latest scan results from the database for display on the dashboard. """
     results = db.query(AuditResult).order_by(AuditResult.created_at.desc()).limit(10).all()
 
-    # Format the response for frontend compatibility
-    response_data = [
+    # Format response for frontend compatibility
+    return [
         {
             "id": str(result.id),
             "contract_name": result.contract_name,
@@ -155,5 +168,3 @@ async def get_scan_results(db: Session = Depends(get_db)):
         }
         for result in results
     ]
-
-    return response_data
