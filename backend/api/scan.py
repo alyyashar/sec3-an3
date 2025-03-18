@@ -27,9 +27,6 @@ class FixRequest(BaseModel):
 # ✅ Fix all routes: Remove extra "/scan"
 @router.post("/file")
 async def scan_solidity_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """
-    Scan a Solidity contract file (.sol) uploaded by the user and store results in DB.
-    """
     if not file.filename.endswith(".sol"):
         raise HTTPException(status_code=400, detail="Please upload a .sol file")
 
@@ -39,22 +36,26 @@ async def scan_solidity_file(file: UploadFile = File(...), db: Session = Depends
     try:
         result = perform_scan(file_path=contract_path)
 
-        # Store in DB
         db_result = AuditResult(
             contract_name=file.filename,
-            contract_address=None,  # N/A for file uploads
+            contract_address=None,
             scan_results=result
         )
         db.add(db_result)
         db.commit()
         db.refresh(db_result)
 
-        return {"message": "Analysis completed and stored", "audit_id": str(db_result.id), "result": result}
+        # Explicitly return a response with content
+        return {
+            "message": "Analysis completed and stored",
+            "audit_id": str(db_result.id),
+            "result": result
+        }
 
     except Exception as e:
         logging.error(f"Error scanning Solidity file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
-
+    
 @router.post("/code")
 async def scan_solidity_code(request: CodeInput, db: Session = Depends(get_db)):
     """
