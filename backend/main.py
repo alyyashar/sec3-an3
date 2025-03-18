@@ -10,6 +10,8 @@ origins = [
     "http://localhost:3000",  # Local dev
     "https://sec3-an3.vercel.app",  # Production Vercel domain
     "https://sec3-an3-ogqm23qse-alyyashars-projects.vercel.app",  # Your Vercel deployment
+    "https://sec3-an3-production.up.railway.app",  # Backend on Railway
+    "https://*.vercel.app",
 ]
 
 app.add_middleware(
