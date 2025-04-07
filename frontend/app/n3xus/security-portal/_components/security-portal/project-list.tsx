@@ -25,7 +25,7 @@ interface ProjectListProps {
 export function ProjectList({ selectedProject, onSelectProject, projects }: ProjectListProps) {
   return (
     <div className="p-4 space-y-3">
-      {projects.length === 0 ? (
+      {!projects || projects.length === 0 ? (
         <p className="text-sm text-muted-foreground">No projects found.</p>
       ) : (
         projects.map((project) => {
