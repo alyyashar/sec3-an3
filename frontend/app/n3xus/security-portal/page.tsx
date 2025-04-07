@@ -49,7 +49,7 @@ export default function SecurityPortal() {
   const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
-    fetch("/api/scan/results")
+    fetch("https://sec3-an3-production.up.railway.app/api/scan/results")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
