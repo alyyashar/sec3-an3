@@ -29,7 +29,7 @@ export function ProjectList({ selectedProject, onSelectProject }: ProjectListPro
       try {
         const res = await fetch('/api/scan/results');
         const data = await res.json();
-        console.log('Fetched scan results:', data); // Optional debug
+        console.log('Fetched scan results:', data);
 
         const parsed = data.map((item: any) => {
           const sev = item.scan_results?.scanner_results?.summary?.severity_breakdown ?? {};
