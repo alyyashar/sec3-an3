@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Rajdhani', sans-serif; padding: 2rem; }
+    h1, h2 { color: #1a1a1a; }
+    .severity-Critical { color: red; }
+    .severity-High { color: darkorange; }
+    .severity-Medium { color: goldenrod; }
+    .severity-Low { color: green; }
+    .section { margin-top: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    td, th { border: 1px solid #ddd; padding: 8px; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <h1>AN3 – Smart Contract Audit Report</h1>
+  <p><strong>Audit Date:</strong> {{ scan.created_at }}</p>
+  <p><strong>Contract:</strong> {{ scan.contract_name or 'N/A' }}</p>
+
+  <div class="section">
+    <h2>Executive Summary</h2>
+    <ul>
+      {% for finding in scan.scan_results.vulnerabilities %}
+      <li class="severity-{{ finding.severity }}">
+        {{ finding.severity }}: {{ finding.issue }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Detailed Findings</h2>
+    <table>
+      <tr>
+        <th>Severity</th><th>Issue</th><th>Description</th><th>File</th>
+      </tr>
+      {% for vuln in scan.scan_results.vulnerabilities %}
+      <tr>
+        <td class="severity-{{ vuln.severity }}">{{ vuln.severity }}</td>
+        <td>{{ vuln.issue }}</td>
+        <td>{{ vuln.description }}</td>
+        <td>{{ vuln.location.filename }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
