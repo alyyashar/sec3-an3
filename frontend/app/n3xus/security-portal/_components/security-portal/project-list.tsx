@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Project {
   id: string;
@@ -15,73 +16,41 @@ interface Project {
   timestamp: string;
 }
 
-const projects: Project[] = [
-  {
-    id: 'project1',
-    name: 'TokenSwap.sol',
-    address: '0x1a2b...3c4d',
-    status: 'In Progress',
-    criticalIssues: 2,
-    highIssues: 3,
-    mediumIssues: 2,
-    lowIssues: 0,
-    timestamp: '2025-03-04T15:30:00',
-  },
-  {
-    id: 'project2',
-    name: 'LiquidityPool.sol',
-    address: '0x5e6f...7g8h',
-    status: 'Completed',
-    criticalIssues: 0,
-    highIssues: 1,
-    mediumIssues: 3,
-    lowIssues: 6,
-    timestamp: '2025-03-03T12:15:00',
-  },
-  {
-    id: 'project3',
-    name: 'NFTMarketplace.sol',
-    address: '0x9i0j...1k2l',
-    status: 'Completed',
-    criticalIssues: 1,
-    highIssues: 2,
-    mediumIssues: 4,
-    lowIssues: 5,
-    timestamp: '2025-03-02T09:45:00',
-  },
-  {
-    id: 'project4',
-    name: 'StakingRewards.sol',
-    address: '0x3m4n...5o6p',
-    status: 'Completed',
-    criticalIssues: 0,
-    highIssues: 0,
-    mediumIssues: 2,
-    lowIssues: 7,
-    timestamp: '2025-03-01T14:20:00',
-  },
-  {
-    id: 'project5',
-    name: 'GovernanceToken.sol',
-    address: '0x7q8r...9s0t',
-    status: 'Pending',
-    criticalIssues: 0,
-    highIssues: 0,
-    mediumIssues: 0,
-    lowIssues: 0,
-    timestamp: '2025-02-28T11:10:00',
-  },
-];
-
 interface ProjectListProps {
   selectedProject: string | null;
   onSelectProject: (id: string) => void;
 }
 
-export function ProjectList({
-  selectedProject,
-  onSelectProject,
-}: ProjectListProps) {
+export function ProjectList({ selectedProject, onSelectProject }: ProjectListProps) {
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch('/api/scan/results');
+        const data = await res.json();
+        const parsed = data.map((item: any) => {
+          const sev = item.scan_results?.scanner_results?.summary?.severity_breakdown || {};
+          return {
+            id: item.id,
+            name: item.contract_name,
+            address: item.contract_address || 'N/A',
+            status: 'Completed',
+            criticalIssues: (sev['Critical'] || 0),
+            highIssues: (sev['High'] || 0),
+            mediumIssues: (sev['Medium'] || 0),
+            lowIssues: (sev['Low'] || 0),
+            timestamp: item.created_at,
+          };
+        });
+        setProjects(parsed);
+      } catch (err) {
+        console.error('Failed to fetch projects:', err);
+      }
+    };
+    fetchProjects();
+  }, []);
+
   return (
     <div className="divide-y">
       <div className="grid grid-cols-3 px-4 py-2 text-xs font-medium text-muted-foreground">
@@ -94,17 +63,13 @@ export function ProjectList({
         <div
           key={project.id}
           className={`px-4 py-3 hover:bg-muted/50 cursor-pointer ${
-            selectedProject === project.id
-              ? 'bg-muted border-l-4 border-primary'
-              : ''
+            selectedProject === project.id ? 'bg-muted border-l-4 border-primary' : ''
           }`}
           onClick={() => onSelectProject(project.id)}
         >
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <div className="font-medium truncate max-w-[150px]">
-                {project.name}
-              </div>
+              <div className="font-medium truncate max-w-[150px]">{project.name}</div>
               <div className="text-xs text-muted-foreground truncate max-w-[150px]">
                 {project.address}
               </div>
@@ -116,8 +81,8 @@ export function ProjectList({
                   project.status === 'Completed'
                     ? 'success'
                     : project.status === 'In Progress'
-                      ? 'default'
-                      : 'secondary'
+                    ? 'default'
+                    : 'secondary'
                 }
                 className="text-xs"
               >
