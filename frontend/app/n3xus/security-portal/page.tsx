@@ -25,16 +25,41 @@ import {
   ShieldCheck,
 } from "lucide-react";
 // ✅ correct import syntax
-import ProjectList from "@/app/n3xus/security-portal/_components/security-portal/project-list";
-
+import { ProjectList } from "@/app/n3xus/security-portal/_components/security-portal/project-list";
 import { VulnerabilityAnalysis } from "@/app/n3xus/security-portal/_components/security-portal/vulnerability-analysis";
 import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/security-portal/security-copilot";
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
-import { AppSidebar } from "@/components/app-sidebar";
+
+interface Project {
+  id: string;
+  name: string;
+  address: string;
+  status: "In Progress" | "Completed" | "Pending";
+  criticalIssues: number;
+  highIssues: number;
+  mediumIssues: number;
+  lowIssues: number;
+  timestamp: string;
+  scan_results?: any;
+}
 
 export default function SecurityPortal() {
-  const [selectedProject, setSelectedProject] = useState<any | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    fetch("/api/scan/results")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else if (Array.isArray(data.projects)) {
+          setProjects(data.projects);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch projects:", err));
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
