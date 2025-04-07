@@ -74,6 +74,46 @@ export function UploadContractModal() {
     }
   };
 
+  const handleCodeAnalysis = async () => {
+    if (!codeInput.trim()) return alert('Please paste contract code to analyze.');
+    setProcessing(true);
+    try {
+      const response = await fetch(`${API_URL}/api/scan/code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: codeInput }),
+      });
+      if (!response.ok) throw new Error('Failed to analyze code');
+      const data = await response.json();
+      setAuditId(data.audit_id);
+      pollForResults(data.audit_id);
+    } catch (err) {
+      console.error(err);
+      alert('Code analysis error.');
+      setProcessing(false);
+    }
+  };
+
+  const handleAddressAnalysis = async () => {
+    if (!addressInput.trim()) return alert('Please enter a contract address.');
+    setProcessing(true);
+    try {
+      const response = await fetch(`${API_URL}/api/scan/address`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addressInput }),
+      });
+      if (!response.ok) throw new Error('Failed to analyze address');
+      const data = await response.json();
+      setAuditId(data.audit_id);
+      pollForResults(data.audit_id);
+    } catch (err) {
+      console.error(err);
+      alert('Address analysis error.');
+      setProcessing(false);
+    }
+  };
+
   const pollForResults = async (auditId: string) => {
     let attempts = 0;
     const maxAttempts = 10;
@@ -180,6 +220,11 @@ export function UploadContractModal() {
                   onChange={(e) => setCodeInput(e.target.value)}
                   className="bg-background border-[#333]"
                 />
+                <div className="flex justify-end mt-3">
+                  <Button onClick={handleCodeAnalysis} disabled={processing || !codeInput.trim()}>
+                    Start Analysis
+                  </Button>
+                </div>
               </TabsContent>
 
               <TabsContent value="address">
@@ -189,6 +234,11 @@ export function UploadContractModal() {
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
                 />
+                <div className="flex justify-end mt-3">
+                  <Button onClick={handleAddressAnalysis} disabled={processing || !addressInput.trim()}>
+                    Start Analysis
+                  </Button>
+                </div>
               </TabsContent>
             </Tabs>
 
