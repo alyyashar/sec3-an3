@@ -24,7 +24,6 @@ import {
   Brain,
   ShieldCheck,
 } from "lucide-react";
-// ✅ correct import syntax
 import { ProjectList } from "@/app/n3xus/security-portal/_components/security-portal/project-list";
 import { VulnerabilityAnalysis } from "@/app/n3xus/security-portal/_components/security-portal/vulnerability-analysis";
 import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/security-portal/security-copilot";
@@ -101,7 +100,12 @@ export default function SecurityPortal() {
           </div>
 
           <div className="flex-1 overflow-auto">
-            <ProjectList selectedProject={selectedProject} onSelectProject={setSelectedProject} />
+            {/* Pass down the projects prop so ProjectList gets the data */}
+            <ProjectList
+              selectedProject={selectedProject}
+              onSelectProject={setSelectedProject}
+              projects={projects}
+            />
           </div>
         </div>
         {/* ---------- /LEFT PANEL: PROJECTS LIST ---------- */}
@@ -373,9 +377,7 @@ export default function SecurityPortal() {
                                 key={step.title}
                                 title={step.title}
                                 date={step.date}
-                                status={
-                                  step.status as "complete" | "current" | "pending"
-                                }
+                                status={step.status as "complete" | "current" | "pending"}
                                 isLast={index === timeline.length - 1}
                               />
                             ));
@@ -424,8 +426,7 @@ export default function SecurityPortal() {
                       <CardHeader>
                         <CardTitle>Auto-Reaudit & Verification</CardTitle>
                         <CardDescription>
-                          AI scans fixes and validates remediation before triggering
-                          re-audits
+                          AI scans fixes and validates remediation before triggering re-audits
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -456,10 +457,7 @@ export default function SecurityPortal() {
                                 </p>
                               </div>
                             </div>
-                            <Badge
-                              variant="outline"
-                              className="border-green-500 text-green-500"
-                            >
+                            <Badge variant="outline" className="border-green-500 text-green-500">
                               Pending
                             </Badge>
                           </div>
