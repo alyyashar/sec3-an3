@@ -29,17 +29,19 @@ export function ProjectList({ selectedProject, onSelectProject }: ProjectListPro
       try {
         const res = await fetch('/api/scan/results');
         const data = await res.json();
+        console.log('Fetched scan results:', data); // Optional debug
+
         const parsed = data.map((item: any) => {
-          const sev = item.scan_results?.scanner_results?.summary?.severity_breakdown || {};
+          const sev = item.scan_results?.scanner_results?.summary?.severity_breakdown ?? {};
           return {
             id: item.id,
-            name: item.contract_name,
+            name: item.contract_name || 'Unnamed Contract',
             address: item.contract_address || 'N/A',
             status: 'Completed',
-            criticalIssues: (sev['Critical'] || 0),
-            highIssues: (sev['High'] || 0),
-            mediumIssues: (sev['Medium'] || 0),
-            lowIssues: (sev['Low'] || 0),
+            criticalIssues: sev['Critical'] ?? 0,
+            highIssues: sev['High'] ?? 0,
+            mediumIssues: sev['Medium'] ?? 0,
+            lowIssues: sev['Low'] ?? 0,
             timestamp: item.created_at,
           };
         });
