@@ -69,7 +69,9 @@ export function AppSidebar() {
             <span className="font-bold text-white text-lg">N3</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold">Security Suite</span>
+          <span className="font-semibold text-lg" style={{ fontFamily: 'Rajdhani' }}>
+  N3XUS
+</span>
             <span className="text-xs text-muted-foreground">v1.2.0</span>
           </div>
         </div>
