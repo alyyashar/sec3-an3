@@ -14,3 +14,4 @@ class AuditResult(Base):
     contract_address = Column(String, nullable=True)
     scan_results = Column(JSON, nullable=False)  # Combine issues, AI verification, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
+

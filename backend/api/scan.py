@@ -154,3 +154,25 @@ async def get_scan_results(db: Session = Depends(get_db)):
     ]
 
     return response_data
+
+from fastapi.responses import FileResponse
+from services.pdf_report import generate_pdf_report
+
+@router.get("/{audit_id}/report")
+async def download_pdf_report(audit_id: str, db: Session = Depends(get_db)):
+    """
+    Generate and return a downloadable PDF report for a given audit_id.
+    """
+    audit = db.query(AuditResult).filter_by(id=audit_id).first()
+    if not audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    scan_data = {
+        "contract_name": audit.contract_name,
+        "contract_address": audit.contract_address,
+        "created_at": audit.created_at.strftime("%Y-%m-%d"),
+        "scan_results": audit.scan_results
+    }
+
+    pdf_path = generate_pdf_report(scan_data)
+    return FileResponse(pdf_path, filename=f"{audit.contract_name or 'audit'}_report_AN3.pdf", media_type="application/pdf")
