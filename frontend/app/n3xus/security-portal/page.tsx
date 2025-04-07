@@ -32,8 +32,7 @@ import { VerificationStatus } from "@/app/n3xus/security-portal/_components/secu
 import { AppSidebar } from "@/components/app-sidebar"
 
 export default function SecurityPortal() {
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
   return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="border-b">
@@ -80,10 +79,12 @@ export default function SecurityPortal() {
               <div className="h-full">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">TokenSwap.sol</h2>
-                      <p className="text-sm text-muted-foreground">Contract Address: 0x1a2b...3c4d</p>
-                    </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedProject?.name}</h2>
+                     <p className="text-sm text-muted-foreground">
+                        Contract Address: {selectedProject?.address || 'N/A'}
+                     </p>
+                  </div>
                     <div className="flex items-center space-x-2">
                       <Button variant="outline" size="sm">
                         <Eye className="mr-2 h-4 w-4" />
@@ -106,63 +107,141 @@ export default function SecurityPortal() {
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <RiskScoreCard />
+                    <RiskScoreCard
+  score={selectedProject?.scan_results?.scanner_results?.score ?? 72}
+/>
+
 
                         <Card>
-                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
-                            <Brain className="h-4 w-4 text-cyan-500" />
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-2xl font-bold text-green-500">Complete</div>
-                            <p className="text-xs text-muted-foreground">Last updated: 2 hours ago</p>
-                          </CardContent>
-                        </Card>
+  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
+    <Brain className="h-4 w-4 text-cyan-500" />
+  </CardHeader>
+  <CardContent>
+    <div className="text-2xl font-bold text-green-500">
+      {selectedProject?.scan_results?.ai_verification ? "Complete" : "Pending"}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
+    </p>
+  </CardContent>
+</Card>
 
-                        <Card>
-                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
-                            <AlertTriangle className="h-4 w-4 text-red-500" />
-                          </CardHeader>
-                          <CardContent className="flex gap-8">
-                            <div className="text-2xl font-bold">7</div>
-                            <div className="flex flex-wrap space-x-1 gap-2">
-                              <Badge variant="destructive" className="text-xs flex-1 min-w-max h-6">
-                                2 Critical
-                              </Badge>
-                              <Badge variant="outline" className="text-xs flex-1 min-w-max h-6 border-orange-500 text-orange-500">
-                                3 High
-                              </Badge>
-                              <Badge variant="outline" className="text-xs flex-1 min-w-max h-6 border-yellow-500 text-yellow-500">
-                                2 Medium
-                              </Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
 
-                        <Card>
-                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Auto-Fix Suggestions</CardTitle>
-                            <Code className="h-4 w-4 text-green-500" />
-                          </CardHeader>
-                          <CardContent>
-                            <div className="text-2xl font-bold">5</div>
-                            <p className="text-xs text-muted-foreground">Ready to implement</p>
-                            <Button variant="link" size="sm" className="px-0 h-6 mt-1">
-                              Apply fixes <ArrowRight className="ml-1 h-3 w-3" />
-                            </Button>
-                          </CardContent>
-                        </Card>
+<Card>
+  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
+    <AlertTriangle className="h-4 w-4 text-red-500" />
+  </CardHeader>
+  <CardContent className="flex gap-8">
+    <div className="text-2xl font-bold">
+      {(() => {
+        const sev = selectedProject?.scan_results?.scanner_results?.summary?.severity_breakdown || {};
+        const missed = selectedProject?.scan_results?.ai_verification?.missed_vulnerabilities || [];
+        const critical = missed.filter((vuln: any) => vuln.severity === 'High' || vuln.severity === 'Critical').length;
+        return (critical + (sev['High'] || 0) + (sev['Medium'] || 0));
+      })()}
+    </div>
+    <div className="flex flex-wrap space-x-1 gap-2">
+      {(() => {
+        const missed = selectedProject?.scan_results?.ai_verification?.missed_vulnerabilities || [];
+        const sev = selectedProject?.scan_results?.scanner_results?.summary?.severity_breakdown || {};
+        const high = sev['High'] || 0;
+        const medium = sev['Medium'] || 0;
+        const critical = missed.filter((vuln: any) => vuln.severity === 'High' || vuln.severity === 'Critical').length;
+
+        return (
+          <>
+            {critical > 0 && (
+              <Badge variant="destructive" className="text-xs flex-1 min-w-max h-6">
+                {critical} Critical
+              </Badge>
+            )}
+            {high > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs flex-1 min-w-max h-6 border-orange-500 text-orange-500"
+              >
+                {high} High
+              </Badge>
+            )}
+            {medium > 0 && (
+              <Badge
+                variant="outline"
+                className="text-xs flex-1 min-w-max h-6 border-yellow-500 text-yellow-500"
+              >
+                {medium} Medium
+              </Badge>
+            )}
+          </>
+        );
+      })()}
+    </div>
+  </CardContent>
+</Card>
+
+
+<Card>
+  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <CardTitle className="text-sm font-medium">Auto-Fix Suggestions</CardTitle>
+    <Code className="h-4 w-4 text-green-500" />
+  </CardHeader>
+  <CardContent>
+    {(() => {
+      const fixes = selectedProject?.scan_results?.ai_remediation?.fix_suggestions || [];
+      const fixCount = fixes.length;
+
+      return (
+        <>
+          <div className="text-2xl font-bold">{fixCount}</div>
+          <p className="text-xs text-muted-foreground">
+            {fixCount > 0 ? 'Ready to implement' : 'No auto-fixes generated'}
+          </p>
+          {fixCount > 0 && (
+            <Button variant="link" size="sm" className="px-0 h-6 mt-1">
+              Apply fixes <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          )}
+        </>
+      );
+    })()}
+  </CardContent>
+</Card>
+
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium">Project Progress: 75%</h3>
-                          <span className="text-sm text-muted-foreground">Phase 3: Vulnerability Analysis</span>
-                        </div>
-                        <Progress value={75} className="h-2" />
-                      </div>
+                      {(() => {
+  const scan = selectedProject?.scan_results || {};
+  const aiDone = !!scan?.ai_verification;
+  const fixesDone = (scan?.ai_remediation?.fix_suggestions || []).length > 0;
+
+  let progress = 25;
+  let phase = "Phase 1: Analysis Started";
+
+  if (aiDone) {
+    progress = 50;
+    phase = "Phase 2: AI Analysis";
+  }
+  if (fixesDone) {
+    progress = 75;
+    phase = "Phase 3: Fix Suggestions";
+  }
+  if (aiDone && fixesDone && scan?.verified) {
+    progress = 100;
+    phase = "Phase 4: Verified";
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium">Project Progress: {progress}%</h3>
+        <span className="text-sm text-muted-foreground">{phase}</span>
+      </div>
+      <Progress value={progress} className="h-2" />
+    </div>
+  );
+})()}
+
 
                       {/* <div className="grid gap-4 md:grid-cols-2">
                         <Card>
@@ -201,22 +280,34 @@ export default function SecurityPortal() {
                         </CardHeader>
                         <CardContent>
                           <ol className="relative border-l border-muted">
-                            <TimelineItem title="Project Created" date="Mar 4, 2025" status="complete" />
-                            <TimelineItem title="AI Analysis Started" date="Mar 4, 2025" status="complete" />
-                            <TimelineItem
-                              title="Vulnerability Analysis Complete"
-                              date="Mar 5, 2025"
-                              status="complete"
-                            />
-                            <TimelineItem title="Auto-Fix Suggestions Generated" date="Mar 5, 2025" status="complete" />
-                            <TimelineItem title="Fixes Implementation" date="Pending" status="current" />
-                            <TimelineItem title="Verification & Re-audit" date="Pending" status="pending" />
-                            <TimelineItem
-                              title="Final Report & Attestation"
-                              date="Pending"
-                              status="pending"
-                              isLast={true}
-                            />
+                          {(() => {
+  const scan = selectedProject?.scan_results || {};
+  const aiDone = !!scan?.ai_verification;
+  const fixes = scan?.ai_remediation?.fix_suggestions || [];
+  const fixesDone = fixes.length > 0;
+  const isVerified = !!scan?.verified;
+
+  const timeline = [
+    { title: "Project Created", date: new Date(selectedProject?.timestamp).toLocaleDateString(), status: "complete" },
+    { title: "AI Analysis Started", date: aiDone ? new Date(selectedProject?.timestamp).toLocaleDateString() : "Pending", status: aiDone ? "complete" : "pending" },
+    { title: "Vulnerability Analysis Complete", date: aiDone ? new Date(selectedProject?.timestamp).toLocaleDateString() : "Pending", status: aiDone ? "complete" : "pending" },
+    { title: "Auto-Fix Suggestions Generated", date: fixesDone ? new Date(selectedProject?.timestamp).toLocaleDateString() : "Pending", status: fixesDone ? "complete" : "pending" },
+    { title: "Fixes Implementation", date: "Pending", status: aiDone && fixesDone ? "current" : "pending" },
+    { title: "Verification & Re-audit", date: "Pending", status: isVerified ? "complete" : "pending" },
+    { title: "Final Report & Attestation", date: "Pending", status: isVerified ? "current" : "pending" },
+  ];
+
+  return timeline.map((step, index) => (
+    <TimelineItem
+      key={step.title}
+      title={step.title}
+      date={step.date}
+      status={step.status as "complete" | "current" | "pending"}
+      isLast={index === timeline.length - 1}
+    />
+  ));
+})()}
+
                           </ol>
                         </CardContent>
                       </Card>

@@ -79,7 +79,7 @@ export function ProjectList({ selectedProject, onSelectProject }: ProjectListPro
             className={`px-4 py-3 hover:bg-muted/50 cursor-pointer ${
               selectedProject === project.id ? 'bg-muted border-l-4 border-primary' : ''
             }`}
-            onClick={() => onSelectProject(project.id)}
+            onClick={() => onSelectProject(project)}
           >
             <div className="grid grid-cols-3 gap-4">
               <div>
