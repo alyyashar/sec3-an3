@@ -27,7 +27,7 @@ export function ProjectList({ selectedProject, onSelectProject }: ProjectListPro
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch('/api/scan/results');
+        const res = await fetch('https://sec3-an3-production.up.railway.app/api/scan/results');
         const data = await res.json();
         console.log('Fetched scan results:', data);
 
