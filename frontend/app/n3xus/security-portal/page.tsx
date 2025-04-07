@@ -24,7 +24,9 @@ import {
   Brain,
   ShieldCheck,
 } from "lucide-react";
-import { ProjectList } from "@/app/n3xus/security-portal/_components/security-portal/project-list";
+// ✅ correct import syntax
+import ProjectList from "@/app/n3xus/security-portal/_components/security-portal/project-list";
+
 import { VulnerabilityAnalysis } from "@/app/n3xus/security-portal/_components/security-portal/vulnerability-analysis";
 import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/security-portal/security-copilot";
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
