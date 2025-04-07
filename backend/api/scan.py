@@ -145,6 +145,7 @@ async def get_scan_results(db: Session = Depends(get_db)):
     response_data = [
         {
             "id": str(result.id),
+            "name": result.contract_name,
             "contract_name": result.contract_name,
             "contract_address": result.contract_address,
             "scan_results": result.scan_results,
