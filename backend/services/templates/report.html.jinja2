@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <style>
     body { font-family: 'Rajdhani', sans-serif; padding: 2rem; }
-    h1, h2 { color: #1a1a1a; }
+    h1, h2, h3 { color: #1a1a1a; }
     .severity-Critical { color: red; }
     .severity-High { color: darkorange; }
     .severity-Medium { color: goldenrod; }
     .severity-Low { color: green; }
-    .severity-Informational { color: gray; }
+    .severity-Informational { color: #777; }
     .section { margin-top: 2rem; }
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     td, th { border: 1px solid #ddd; padding: 8px; font-size: 0.95em; }
@@ -21,19 +21,25 @@
   <p><strong>Contract:</strong> {{ scan.contract_name or 'N/A' }}</p>
 
   <div class="section">
-    <h2>Audit Methodology</h2>
-    <p>This audit was performed using automated static analysis tools (Slither & Mythril) along with AI-assisted validation. 
-       Detected issues were classified by severity and verified to eliminate false positives. Missed vulnerabilities were also inferred through LLM review.</p>
-  </div>
-
-  <div class="section">
     <h2>Executive Summary</h2>
+    <img src="{{ pie_chart }}" alt="Severity Chart" width="400">
     <ul>
       {% for vuln in vulnerabilities %}
       <li class="severity-{{ vuln.severity }}">{{ vuln.severity }}: {{ vuln.issue }}</li>
       {% endfor %}
       {% for vuln in missed_vulnerabilities %}
-      <li class="severity-{{ vuln.severity }}">{{ vuln.severity }} (AI): {{ vuln.issue }}</li>
+      <li class="severity-{{ vuln.severity }}">AI-Detected {{ vuln.severity }}: {{ vuln.issue }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>AS-IS Contract Overview</h2>
+    <p><strong>Contract Name:</strong> {{ contract_logic.contract_name }}</p>
+    <h3>Functions:</h3>
+    <ul>
+      {% for fn in contract_logic.functions %}
+      <li>{{ fn.name }} — {{ fn.visibility }}{% if fn.payable %}, payable{% endif %}</li>
       {% endfor %}
     </ul>
   </div>
@@ -42,31 +48,24 @@
     <h2>Detailed Findings</h2>
     <table>
       <tr>
-        <th>Severity</th>
-        <th>Tool</th>
-        <th>Issue</th>
-        <th>Description</th>
-        <th>File</th>
-        <th>Line</th>
+        <th>Severity</th><th>Issue</th><th>Description</th><th>File</th><th>Line</th>
       </tr>
       {% for vuln in vulnerabilities %}
       <tr>
         <td class="severity-{{ vuln.severity }}">{{ vuln.severity }}</td>
-        <td>{{ vuln.tool or 'N/A' }}</td>
         <td>{{ vuln.issue }}</td>
         <td>{{ vuln.description }}</td>
-        <td>{{ vuln.location.file or 'N/A' }}</td>
-        <td>{{ vuln.location.line or 'N/A' }}</td>
+        <td>{{ vuln.location.file }}</td>
+        <td>{{ vuln.location.line }}</td>
       </tr>
       {% endfor %}
       {% for vuln in missed_vulnerabilities %}
       <tr>
-        <td class="severity-{{ vuln.severity }}">{{ vuln.severity }} (AI)</td>
-        <td>AI</td>
+        <td class="severity-{{ vuln.severity }}">{{ vuln.severity }}</td>
         <td>{{ vuln.issue }}</td>
         <td>{{ vuln.description }}</td>
-        <td>{{ vuln.location.file or 'N/A' }}</td>
-        <td>{{ vuln.location.line or 'N/A' }}</td>
+        <td>{{ vuln.location.file }}</td>
+        <td>{{ vuln.location.line }}</td>
       </tr>
       {% endfor %}
     </table>
