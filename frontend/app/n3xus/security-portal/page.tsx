@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { UploadContractModal } from "./upload-modal"
 import {
   AlertTriangle,
   CheckCircle,
@@ -43,10 +44,7 @@ export default function SecurityPortal() {
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Refresh
               </Button>
-              <Button size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Contract
-              </Button>
+              <UploadContractModal />
             </div>
           </div>
         </header>
