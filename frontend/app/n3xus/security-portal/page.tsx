@@ -45,6 +45,7 @@ export default function SecurityPortal() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
+            console.log("UploadContractModal is:", UploadContractModal);
             <UploadContractModal />
           </div>
         </div>
