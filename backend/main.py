@@ -18,6 +18,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Allow frontend domains
     allow_credentials=True,
+    allow_origin_regex=r"https:\/\/sec3-an3(-[a-z0-9]+)?\.alyyashars-projects\.vercel\.app"
     allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
