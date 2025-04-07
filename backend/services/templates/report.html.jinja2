@@ -3,79 +3,141 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: 'Rajdhani', sans-serif; padding: 2rem; font-size: 14px; line-height: 1.6; color: #222; }
-    h1 { font-size: 24px; border-bottom: 2px solid #444; padding-bottom: 0.5rem; }
-    h2 { font-size: 20px; margin-top: 2rem; }
-    h3 { font-size: 16px; margin-top: 1rem; }
-    .section { margin-top: 2rem; }
-    .severity-Critical { color: red; }
-    .severity-High { color: darkorange; }
-    .severity-Medium { color: goldenrod; }
-    .severity-Low { color: green; }
-    .severity-Informational { color: gray; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
-    th { background-color: #f4f4f4; text-align: left; }
-    ul { padding-left: 1.2rem; }
-    .flex-row { display: flex; align-items: flex-start; gap: 2rem; }
-    .chart { flex: 1; max-width: 300px; }
-    .summary-points { flex: 2; }
+    @page { margin: 2cm; }
+    body { font-family: 'Rajdhani', sans-serif; font-size: 13px; line-height: 1.6; color: #1a1a1a; }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+    }
+
+    header h1 { font-size: 24px; margin: 0; }
+    header h2 { font-size: 16px; margin: 0; color: #555; }
+
+    section { margin-bottom: 2.5rem; }
+
+    h2.section-title {
+      font-size: 18px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+      margin-bottom: 1rem;
+    }
+
+    .severity-Critical { color: red; font-weight: bold; }
+    .severity-High { color: darkorange; font-weight: bold; }
+    .severity-Medium { color: goldenrod; font-weight: bold; }
+    .severity-Low { color: green; font-weight: bold; }
+    .severity-Informational { color: gray; font-weight: bold; }
+
+    ul { padding-left: 1.5rem; }
+    ul li { margin-bottom: 4px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background: #f9f9f9;
+      font-weight: bold;
+      text-align: left;
+      padding: 6px;
+    }
+
+    td {
+      padding: 6px;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) {
+      background: #f5f5f5;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      padding-top: 1rem;
+    }
+
+    .chart-box {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .contract-functions {
+      columns: 2;
+      -webkit-columns: 2;
+      -moz-columns: 2;
+    }
+
   </style>
 </head>
 <body>
-  <h1>AN3 – Smart Contract Audit Report</h1>
-  <p><strong>Audit Date:</strong> {{ scan.created_at }}</p>
-  <p><strong>Contract:</strong> {{ scan.contract_name or 'N/A' }}</p>
 
-  <div class="section">
-    <h2>1. Audit Methodology</h2>
-    <p>This audit was conducted using both automated and manual review techniques. We utilized tools like <strong>Slither</strong> and <strong>Mythril</strong> for static analysis, and integrated AI-assisted post-processing to identify potential false positives and missed vulnerabilities. The methodology includes:</p>
-    <ul>
-      <li>Static code analysis using Slither & Mythril</li>
-      <li>Manual line-by-line inspection of contract logic</li>
-      <li>Cross-verification against known SWC-Registry vulnerabilities</li>
-      <li>AI-based validation for confirming the findings and identifying overlooked bugs</li>
-      <li>Evaluation of best practices, design patterns, and known attack vectors</li>
-    </ul>
-    <p>Note: This audit does not guarantee the complete absence of bugs or vulnerabilities. It reflects the state of the contract at the time of review.</p>
+<header>
+  <h1>AN3 Smart Contract Security Audit Report</h1>
+  <h2>Contract: {{ scan.contract_name or 'Unnamed Contract' }} | Date: {{ scan.created_at }}</h2>
+</header>
+
+<section>
+  <h2 class="section-title">1. Audit Methodology</h2>
+  <p>This audit was conducted using automated and manual security review techniques. We used Slither and Mythril for static analysis and incorporated AI-assisted review to verify findings and identify false negatives. The process includes:</p>
+  <ul>
+    <li>Static code analysis using Slither & Mythril</li>
+    <li>Manual logic inspection for critical functions</li>
+    <li>Cross-checking against SWC Registry and industry standards</li>
+    <li>Post-scan AI verification for false positives and missed issues</li>
+  </ul>
+  <p><strong>Disclaimer:</strong> This report reflects the findings at the time of audit. No security audit guarantees the absence of all vulnerabilities.</p>
+</section>
+
+<section>
+  <h2 class="section-title">2. Executive Summary</h2>
+  <ul>
+    {% for vuln in vulnerabilities %}
+    <li class="severity-{{ vuln.severity }}">{{ vuln.severity }}: {{ vuln.issue }}</li>
+    {% endfor %}
+    {% for vuln in missed_vulnerabilities %}
+    <li class="severity-{{ vuln.severity }}">AI-Detected {{ vuln.severity }}: {{ vuln.issue }}</li>
+    {% endfor %}
+  </ul>
+  <div class="chart-box">
+    <img src="{{ pie_chart }}" alt="Severity Breakdown Chart" width="300">
   </div>
+</section>
 
-  <div class="section">
-    <h2>2. Executive Summary</h2>
-    <div class="flex-row">
-      <div class="summary-points">
-        <ul>
-          {% for vuln in vulnerabilities %}
-          <li class="severity-{{ vuln.severity }}">{{ vuln.severity }}: {{ vuln.issue }}</li>
-          {% endfor %}
-          {% for vuln in missed_vulnerabilities %}
-          <li class="severity-{{ vuln.severity }}">AI-Detected {{ vuln.severity }}: {{ vuln.issue }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div class="chart">
-        <img src="{{ pie_chart }}" alt="Severity Chart" width="250">
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>3. AS-IS Contract Overview</h2>
-    <p><strong>Contract Name:</strong> {{ contract_logic.contract_name }}</p>
-    <h3>Functions:</h3>
+<section>
+  <h2 class="section-title">3. AS-IS Contract Overview</h2>
+  <p><strong>Contract:</strong> {{ contract_logic.contract_name }}</p>
+  <div class="contract-functions">
     <ul>
       {% for fn in contract_logic.functions %}
-      <li>{{ fn.name }} — {{ fn.visibility }}{% if fn.payable %}, payable{% endif %}</li>
+      <li>{{ fn.name }} — <i>{{ fn.visibility }}{% if fn.payable %}, payable{% endif %}</i></li>
       {% endfor %}
     </ul>
   </div>
+</section>
 
-  <div class="section">
-    <h2>4. Detailed Findings</h2>
-    <table>
+<section>
+  <h2 class="section-title">4. Detailed Findings</h2>
+  <table>
+    <thead>
       <tr>
         <th>Severity</th><th>Issue</th><th>Description</th><th>File</th><th>Line</th>
       </tr>
+    </thead>
+    <tbody>
       {% for vuln in vulnerabilities %}
       <tr>
         <td class="severity-{{ vuln.severity }}">{{ vuln.severity }}</td>
@@ -94,7 +156,13 @@
         <td>{{ vuln.location.line or 'N/A' }}</td>
       </tr>
       {% endfor %}
-    </table>
-  </div>
+    </tbody>
+  </table>
+</section>
+
+<div class="footer">
+  Prepared by AN3 Security Team • Confidential — Not for Public Distribution
+</div>
+
 </body>
 </html>
