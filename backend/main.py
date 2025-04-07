@@ -6,22 +6,14 @@ from db import models  # Ensure models are loaded
 
 app = FastAPI(title="N3XUS API", version="1.0.0")
 
-origins = [
-    "http://localhost:3000",  # Local dev
-    "https://sec3-an3.vercel.app",  # Production Vercel domain
-    "https://sec3-an3-ogqm23qse-alyyashars-projects.vercel.app",  # Your Vercel deployment
-    "https://sec3-an3-production.up.railway.app",  # Backend on Railway
-    "https://*.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allow frontend domains
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
-    allow_origin_regex=r"https:\/\/sec3-an3(-[a-z0-9]+)?\.alyyashars-projects\.vercel\.app"
-    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 app.include_router(scan_router, prefix="/api/scan", tags=["scan"])  
 
