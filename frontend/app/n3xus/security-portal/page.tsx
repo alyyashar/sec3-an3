@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { UploadContractModal } from "@/app/n3xus/security-portal/upload-modal";
+import { computeRiskScoreSWC } from "@/app/n3xus/security-portal/risk-scoring"; 
+
 import {
   AlertTriangle,
   CheckCircle,
@@ -43,25 +45,6 @@ interface Project {
   scan_results?: any;
 }
 
-// Add this helper function before your component
-function computeRiskScore(project: Project): number | null {
-  const scanResults = project?.scan_results;
-  if (!scanResults) return null;
-  const scanner = scanResults.scanner_results;
-  const aiVer = scanResults.ai_verification;
-  if (!scanner) return null;
-  
-  const summary = scanner.summary || {};
-  const severityBreakdown = summary.severity_breakdown || {};
-
-  const highCount = (severityBreakdown["High"] || 0);
-  const mediumCount = (severityBreakdown["Medium"] || 0);
-  const lowCount = (severityBreakdown["Low"] || 0);
-  
-  // Simple risk formula: subtract weighted counts from 100
-  const score = 100 - (highCount * 30 + mediumCount * 15 + lowCount * 5);
-  return Math.max(score, 0);
-}
 
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -172,8 +155,8 @@ export default function SecurityPortal() {
                   <TabsContent value="overview" className="space-y-4">
                     {/* 1) Security Score */}
                     <RiskScoreCard
-                      score={ selectedProject ? computeRiskScore(selectedProject) : null } />
-                    />
+                      score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
+                      />
 
                     {/* 2) AI Analysis Status */}
                     <Card>
@@ -420,7 +403,7 @@ export default function SecurityPortal() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <VulnerabilityAnalysis detailed={true} />
+                      <VulnerabilityAnalysis detailed={true} project={selectedProject} />
                       </CardContent>
                     </Card>
                   </TabsContent>
