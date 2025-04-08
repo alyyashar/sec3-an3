@@ -33,8 +33,10 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
+// Updated Project interface with audit_id
 interface Project {
   id: string;
+  audit_id?: string; // New field to store the audit ID from backend
   name: string;
   address: string;
   status: "In Progress" | "Completed" | "Pending";
@@ -46,21 +48,37 @@ interface Project {
   scan_results?: any;
 }
 
-
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
 
-
   useEffect(() => {
     fetch("https://sec3-an3-production.up.railway.app/api/scan/results")
       .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setProjects(data);
-        } else if (Array.isArray(data.projects)) {
-          setProjects(data.projects);
+      .then((rawData) => {
+        // Expecting either an array or an object with a "projects" array.
+        let items = Array.isArray(rawData) ? rawData : rawData.projects;
+        if (!Array.isArray(items)) {
+          items = [];
         }
+
+        // Map the API response to your Project interface.
+        const mappedProjects: Project[] = items.map((item: any) => ({
+          id: item.id,
+          audit_id: item.audit_id, // Ensure audit_id is mapped from the backend response.
+          name: item.contract_name || "Untitled Contract",
+          address: item.contract_address || "",
+          status: "Pending", // Set a default or update based on your API
+          criticalIssues: item.criticalIssues || 0,
+          highIssues: item.highIssues || 0,
+          mediumIssues: item.mediumIssues || 0,
+          lowIssues: item.lowIssues || 0,
+          timestamp: item.created_at || new Date().toISOString(),
+          scan_results: item.scan_results || {},
+        }));
+
+        console.log("Mapped Projects:", mappedProjects);
+        setProjects(mappedProjects);
       })
       .catch((err) => console.error("Failed to fetch projects:", err));
   }, []);
@@ -84,7 +102,7 @@ export default function SecurityPortal() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* ---------- LEFT PANEL: PROJECTS LIST ---------- */}
-        <div className="w-1/3 border-r flex flex-col overflow-hidden">
+        <div className="w-1/3 border-r flex flex-col overflow-auto">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Audit Projects</h2>
@@ -104,7 +122,6 @@ export default function SecurityPortal() {
           </div>
 
           <div className="flex-1 overflow-auto">
-            {/* Pass down the projects prop so ProjectList gets the data */}
             <ProjectList
               selectedProject={selectedProject}
               onSelectProject={setSelectedProject}
@@ -115,7 +132,6 @@ export default function SecurityPortal() {
         {/* ---------- /LEFT PANEL: PROJECTS LIST ---------- */}
 
         {/* ---------- RIGHT PANEL: PROJECT DETAILS ---------- */}
-        
         <div className="flex-1 overflow-auto">
           {selectedProject ? (
             <div className="h-full">
@@ -156,7 +172,7 @@ export default function SecurityPortal() {
                     {/* 1) Security Score */}
                     <RiskScoreCard
                       score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
-                      />
+                    />
 
                     {/* 2) AI Analysis Status */}
                     <Card>
@@ -403,7 +419,7 @@ export default function SecurityPortal() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                      <VulnerabilityAnalysis detailed={true} project={selectedProject} />
+                        <VulnerabilityAnalysis detailed={true} project={selectedProject} />
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -427,7 +443,7 @@ export default function SecurityPortal() {
 
                   {/* ---------- VERIFICATION TAB ---------- */}
                   <TabsContent value="verification" className="space-y-4">
-                  <ReportCollaboration project={selectedProject} isPaidUser={true} />
+                    <ReportCollaboration project={selectedProject} isPaidUser={true} />
                   </TabsContent>
                   {/* ---------- /VERIFICATION TAB ---------- */}
 
