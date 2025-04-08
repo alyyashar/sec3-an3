@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { UploadContractModal } from "@/app/n3xus/security-portal/upload-modal";
 import { computeRiskScoreSWC } from "@/app/n3xus/security-portal/risk-scoring"; 
+import { ReportCollaboration } from "@/app/n3xus/security-portal/_components/security-portal/ReportCollaboration";
 
 import {
   AlertTriangle,
@@ -75,7 +76,6 @@ export default function SecurityPortal() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
-            console.log("UploadContractModal is:", UploadContractModal);
             <UploadContractModal />
           </div>
         </div>
@@ -427,17 +427,7 @@ export default function SecurityPortal() {
 
                   {/* ---------- VERIFICATION TAB ---------- */}
                   <TabsContent value="verification" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Auto-Reaudit & Verification</CardTitle>
-                        <CardDescription>
-                          AI scans fixes and validates remediation before triggering re-audits
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <VerificationStatus />
-                      </CardContent>
-                    </Card>
+                  <ReportCollaboration project={selectedProject} isPaidUser={true} />
                   </TabsContent>
                   {/* ---------- /VERIFICATION TAB ---------- */}
 

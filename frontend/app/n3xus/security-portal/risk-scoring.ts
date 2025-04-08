@@ -1,23 +1,23 @@
-// risk-scoring.ts
+// src/lib/risk-scoring.ts
 
-// SWC_WEIGHTS maps common SWC IDs to a penalty value.
-// The higher the weight, the more the risk score is reduced if that vulnerability is present.
+// SWC_WEIGHTS maps SWC IDs to penalty points. These weights have been reduced
+// and will be applied only once per SWC type.
 export const SWC_WEIGHTS: Record<string, number> = {
-    "SWC-107": 40, // Reentrancy
-    "SWC-101": 30, // Integer overflows/underflows
-    "SWC-100": 10, // Function Default Visibility (e.g., missing visibility specifiers)
-    "SWC-128": 20, // Unchecked Call
-    "SWC-120": 25, // Access Control issues
-    "SWC-124": 35, // Delegatecall Injection
-    "SWC-114": 20, // Transaction Ordering Dependence / Front-running
-    "SWC-111": 15, // Unchecked Return Value
-    "SWC-110": 10, // Assert Violation
-    // Add more mappings as needed...
+    "SWC-107": 20,  // Reentrancy
+    "SWC-101": 15,  // Integer overflows/underflows
+    "SWC-100": 10,  // Missing default visibility
+    "SWC-128": 15,  // Unchecked call
+    "SWC-120": 20,  // Access Control issues
+    "SWC-124": 25,  // Delegatecall Injection
+    "SWC-114": 15,  // Transaction Ordering Dependence / Front-running
+    "SWC-111": 10,  // Unchecked Return Value
+    "SWC-110": 10,  // Assert Violation
+    // ... add any additional mappings as needed
   };
   
   /**
-   * Maps a vulnerability name (or description) to an SWC ID.
-   * This rule-based approach uses simple substring matching.
+   * Maps a vulnerability’s name or description to an SWC ID.
+   * Uses simple substring matching to identify the vulnerability type.
    */
   export function mapToSWCId(vulnName: string): string | null {
     const lowerName = vulnName.toLowerCase();
@@ -32,47 +32,48 @@ export const SWC_WEIGHTS: Record<string, number> = {
       return "SWC-100";
     if (lowerName.includes("unchecked call")) return "SWC-128";
     if (lowerName.includes("access control")) return "SWC-120";
-    // Additional mappings based on observed patterns:
     if (lowerName.includes("delegatecall")) return "SWC-124";
     if (lowerName.includes("order dependence") || lowerName.includes("front-running"))
       return "SWC-114";
     if (lowerName.includes("unchecked return") || lowerName.includes("return value not checked"))
       return "SWC-111";
     if (lowerName.includes("assert violation")) return "SWC-110";
-    // You can continue to add more mappings here based on the types of vulnerabilities you observe.
     
     return null;
   }
   
   /**
    * Computes the risk score for a project based on its scan results.
-   * Starting with a score of 100, this function subtracts weighted penalty points based on the vulnerabilities found.
-   * If a vulnerability maps to an SWC ID with a defined weight, that weight is subtracted.
-   * Otherwise, a small default penalty is applied.
+   * Starts with a score of 100 and subtracts the penalty for each unique vulnerability (SWC)
+   * that is found in either the scanner results or AI verification.
    */
   export function computeRiskScoreSWC(project: { scan_results?: any }): number | null {
     if (!project?.scan_results) return null;
   
     let score = 100;
-  
-    // Fetch the vulnerabilities from both scanner results and AI verification missed vulnerabilities.
     const scannerVulns = project.scan_results.scanner_results?.vulnerabilities || [];
-    const missedVulns = project.scan_results.ai_verification?.missed_vulnerabilities || [];
+    const missedVulns =
+      project.scan_results.ai_verification?.missed_vulnerabilities ||
+      project.scan_results.ai_verification?.verification?.missed_vulnerabilities ||
+      [];
     const allVulns = [...scannerVulns, ...missedVulns];
   
+    // Use a Set to apply each SWC penalty only once.
+    const appliedSWCs = new Set<string>();
+  
     for (const vuln of allVulns) {
-      // Use the "issue" field or fallback to "title" and convert to lower case.
       const name = (vuln.issue || vuln.title || "").toLowerCase();
       const swcId = mapToSWCId(name);
-      if (swcId && SWC_WEIGHTS[swcId]) {
+      if (swcId && !appliedSWCs.has(swcId) && SWC_WEIGHTS[swcId] !== undefined) {
         score -= SWC_WEIGHTS[swcId];
-      } else {
-        // If no SWC mapping is found, subtract a small default penalty.
+        appliedSWCs.add(swcId);
+      } else if (!swcId && !appliedSWCs.has("no-match")) {
+        // Subtract a small default penalty if no SWC mapping is found.
         score -= 5;
+        appliedSWCs.add("no-match");
       }
     }
   
-    // Ensure the score does not go negative.
     return Math.max(score, 0);
   }
   
