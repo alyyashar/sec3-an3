@@ -60,15 +60,41 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
     }
   };
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     console.log("Download PDF clicked!", project?.audit_id);
     alert("Download PDF button clicked");
+    
     if (!project?.audit_id) {
       console.warn("No audit_id found on project.");
       return;
     }
+  
+    // Full URL to your endpoint; adjust if you need a different base domain.
     const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.audit_id}/report`;
-    window.open(url, "_blank");
+  
+    try {
+      // Make a GET request to fetch the PDF
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch PDF: ${res.status} - ${res.statusText}`);
+      }
+  
+      // Convert response to a Blob
+      const blob = await res.blob();
+  
+      // Create an object URL for the Blob
+      const blobUrl = URL.createObjectURL(blob);
+  
+      // Open the Blob in a new tab
+      window.open(blobUrl, "_blank");
+      
+      // Optional: Revoke object URL later if you want to free memory
+      // but usually only needed if the file is large or you create many
+      // setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (error: any) {
+      console.error("Download error:", error);
+      alert("Error downloading PDF: " + error.message);
+    }
   };
 
   const startReportGeneration = async () => {
