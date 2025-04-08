@@ -33,7 +33,6 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
-// Updated Project interface to include audit_id.
 interface Project {
   id: string;
   name: string;
@@ -56,29 +55,26 @@ export default function SecurityPortal() {
       .then((res) => res.json())
       .then((data) => {
         let items: any[] = [];
-        // If data is already an array.
+        // Data could be an array or wrapped in a "projects" property or even a single object.
         if (Array.isArray(data)) {
           items = data;
         } else if (data.projects && Array.isArray(data.projects)) {
           items = data.projects;
         } else if (data.audit_id) {
-          // If data is a single audit result, convert it to an array.
           items = [data];
         }
         // Map the API response to your Project interface.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
-          // Map audit_id from the top-level field.
-          audit_id: item.audit_id,
           name: item.contract_name || "Untitled Contract",
           address: item.contract_address || "",
-          status: "Pending", // You can update this logic if needed.
+          status: "Pending", // Adjust as needed.
           criticalIssues: item.criticalIssues || 0,
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
           timestamp: item.created_at || new Date().toISOString(),
-          // Note: Your scan results are now stored under item.result.
+          // Scan results are stored under "result" based on your sample JSON.
           scan_results: item.result || {},
         }));
 
@@ -187,7 +183,10 @@ export default function SecurityPortal() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-green-500">
-                          {selectedProject?.scan_results?.ai_verification ? "Complete" : "Pending"}
+                          {selectedProject?.scan_results?.ai_verification &&
+                          Object.keys(selectedProject.scan_results.ai_verification).length > 0
+                            ? "Complete"
+                            : "Pending"}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
@@ -353,7 +352,6 @@ export default function SecurityPortal() {
                             const fixes = scan?.ai_remediation?.fix_suggestions || [];
                             const fixesDone = fixes.length > 0;
                             const isVerified = !!scan?.verified;
-
                             const timeline = [
                               {
                                 title: "Project Created",
@@ -397,7 +395,6 @@ export default function SecurityPortal() {
                                 status: isVerified ? "current" : "pending",
                               },
                             ];
-
                             return timeline.map((step, index) => (
                               <TimelineItem
                                 key={step.title}
