@@ -33,8 +33,12 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
+// Updated Project interface with audit_id if needed,
+// but your backend sample shows audit_id at top-level,
+// and the rest of the scan details are nested under "result".
 interface Project {
   id: string;
+  audit_id?: string;
   name: string;
   address: string;
   status: "In Progress" | "Completed" | "Pending";
@@ -62,38 +66,42 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-  
+        // Map the API response to your Project interface.
+        // We extract the nested "result" object so that our UI code, which expects:
+        // - project.scan_results.scanner_results
+        // - project.scan_results.ai_verification
+        // etc.
+        // continues to work as before.
         const mappedProjects: Project[] = items.map((item: any) => {
-          // The raw JSON has "result" which in turn has "scanner_results", "ai_verification", etc.
-          // We'll flatten them into scan_results to match your old references:
-          const { scanner_results = {}, ai_verification = {}, ai_remediation = {}, verified } = item.result || {};
-  
+          // Destructure the result object from the API.
+          const result = item.result || {};
           return {
             id: item.id,
+            audit_id: item.audit_id, // optional, if needed later
             name: item.contract_name || "Untitled Contract",
             address: item.contract_address || "",
-            status: "Pending",
+            status: "Pending", // Update or compute based on your needs.
             criticalIssues: item.criticalIssues || 0,
             highIssues: item.highIssues || 0,
             mediumIssues: item.mediumIssues || 0,
             lowIssues: item.lowIssues || 0,
             timestamp: item.created_at || new Date().toISOString(),
-            // Build the final "scan_results" object
             scan_results: {
-              // Flatten each piece so your code can access them
-              scanner_results,   // so you can do: scan_results.scanner_results
-              ai_verification,   // so you can do: scan_results.ai_verification
-              ai_remediation,    // so you can do: scan_results.ai_remediation
-              verified: verified // so you can do: scan_results.verified
+              // Flatten the keys from result so that the UI can access them as before.
+              scanner_results: result.scanner_results || {},
+              ai_verification: result.ai_verification || {},
+              ai_remediation: result.ai_remediation || {},
+              verified: result.verified || false,
             },
           };
         });
-  
+
         console.log("Mapped Projects:", mappedProjects);
         setProjects(mappedProjects);
       })
       .catch((err) => console.error("Failed to fetch projects:", err));
   }, []);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* ---------- HEADER SECTION ---------- */}
@@ -180,12 +188,12 @@ export default function SecurityPortal() {
 
                   {/* ---------- OVERVIEW TAB ---------- */}
                   <TabsContent value="overview" className="space-y-4">
-                    {/* Security Score */}
+                    {/* 1) Security Score */}
                     <RiskScoreCard
                       score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
                     />
 
-                    {/* AI Analysis Status */}
+                    {/* 2) AI Analysis Status */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
@@ -204,7 +212,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* Vulnerabilities */}
+                    {/* 3) Vulnerabilities */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
@@ -240,7 +248,6 @@ export default function SecurityPortal() {
                               (vuln: any) =>
                                 vuln.severity === "High" || vuln.severity === "Critical"
                             ).length;
-
                             return (
                               <>
                                 {critical > 0 && (
@@ -274,7 +281,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* Auto-Fix Suggestions */}
+                    {/* 4) Auto-Fix Suggestions */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Auto-Fix Suggestions</CardTitle>
@@ -285,7 +292,6 @@ export default function SecurityPortal() {
                           const fixes =
                             selectedProject?.scan_results?.ai_remediation?.fix_suggestions || [];
                           const fixCount = fixes.length;
-
                           return (
                             <>
                               <div className="text-2xl font-bold">{fixCount}</div>
@@ -309,15 +315,13 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* Project Progress */}
+                    {/* 5) Project Progress */}
                     {(() => {
                       const scan = selectedProject?.scan_results || {};
                       const aiDone = !!scan?.ai_verification;
                       const fixesDone = (scan?.ai_remediation?.fix_suggestions || []).length > 0;
-
                       let progress = 25;
                       let phase = "Phase 1: Analysis Started";
-
                       if (aiDone) {
                         progress = 50;
                         phase = "Phase 2: AI Analysis";
@@ -330,7 +334,6 @@ export default function SecurityPortal() {
                         progress = 100;
                         phase = "Phase 4: Verified";
                       }
-
                       return (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
@@ -346,7 +349,7 @@ export default function SecurityPortal() {
                       );
                     })()}
 
-                    {/* Audit Timeline */}
+                    {/* 6) Audit Timeline */}
                     <Card>
                       <CardHeader>
                         <CardTitle>Audit Timeline</CardTitle>
