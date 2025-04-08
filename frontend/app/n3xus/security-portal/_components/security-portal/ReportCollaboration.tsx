@@ -25,9 +25,8 @@ interface ReportProgress {
 }
 
 // This function simulates the progress response from the back end.
-// In a real implementation you would replace this with actual polling of your API endpoint.
+// In a real implementation, replace this with polling of your API endpoint.
 function simulateProgress(attempt: number): ReportProgress {
-  // Increase progress by 20 points every attempt.
   const progress = Math.min(attempt * 20, 100);
   const steps = {
     fetching_data: attempt >= 1,
@@ -62,38 +61,39 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
 
   const handleDownloadReport = async () => {
     console.log("Download PDF clicked!", project?.audit_id);
-    alert("Download PDF button clicked");
-  
+    alert("Download PDF button clicked"); // Debug alert
     if (!project?.audit_id) {
       console.warn("No audit_id found on project.");
       return;
     }
-  
     const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.audit_id}/report`;
-  
     try {
-      // 1) Fetch the PDF from the server
+      // Fetch the PDF file as a Blob
       const res = await fetch(url, { method: "GET" });
       if (!res.ok) {
         throw new Error(`Failed to fetch PDF: ${res.status} - ${res.statusText}`);
       }
-  
-      // 2) Convert the response to a Blob
       const blob = await res.blob();
-  
-      // 3) Create a Blob URL
       const blobUrl = URL.createObjectURL(blob);
-  
-      // 4) Open the Blob in a new tab
       window.open(blobUrl, "_blank");
-  
-      // Optional: Revoke object URL later if you want to free memory
+      // Uncomment the following line if you wish to revoke the object URL after a minute
       // setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } catch (error: any) {
       console.error("Download error:", error);
       alert("Error downloading PDF: " + error.message);
     }
   };
+
+  // For debugging: Uncomment this block to test with a plain HTML button
+  /*
+  return (
+    <div>
+      <button onClick={() => alert("Plain HTML button clicked!")}>
+        Test Plain HTML Button
+      </button>
+    </div>
+  );
+  */
 
   const startReportGeneration = async () => {
     if (!project?.audit_id) return;
@@ -111,9 +111,8 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
     });
     setErrorMsg("");
     
-    // Simulate report generation progress using a polling mechanism.
     let attempts = 0;
-    const maxAttempts = 6; // e.g., after 6 attempts (approx 12 seconds) we'll mark as complete or error.
+    const maxAttempts = 6;
 
     const interval = setInterval(() => {
       attempts++;
@@ -125,7 +124,6 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
         setPolling(false);
       }
       
-      // Optional: if maxAttempts is reached and still not complete, set error.
       if (attempts >= maxAttempts && newState.status !== "complete") {
         setErrorMsg("Report generation timed out. Please try again later.");
         setReportState({ ...newState, status: "error" });
@@ -136,7 +134,7 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   };
 
   // Render an icon for a step depending on whether it's done.
-  const renderStepIcon = (done: boolean) => 
+  const renderStepIcon = (done: boolean) =>
     done ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Hourglass className="h-4 w-4 text-yellow-500" />;
 
   return (
@@ -148,14 +146,11 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* If the report is not yet generated */}
         {reportState.status === "idle" && (
           <Button onClick={startReportGeneration} disabled={!isPaidUser || polling}>
             {isPaidUser ? "Generate PDF Report" : "Generate PDF (Paid Tier)"}
           </Button>
         )}
-        
-        {/* While generation is in progress */}
         {reportState.status === "in_progress" && polling && (
           <>
             <p className="text-sm text-muted-foreground">Report generation in progress...</p>
@@ -180,8 +175,6 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
             </ul>
           </>
         )}
-        
-        {/* When the report is complete */}
         {reportState.status === "complete" && (
           <>
             <p className="text-sm text-green-500">Report generation complete!</p>
@@ -191,13 +184,9 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
             </div>
           </>
         )}
-
-        {/* Error state */}
         {reportState.status === "error" && !polling && (
           <p className="text-sm text-red-500">{errorMsg}</p>
         )}
-
-        {/* Collaboration placeholder */}
         <div className="border rounded-lg p-3">
           <p className="text-sm text-muted-foreground">
             Collaboration with security experts for manual review and bug bounties (N3ST) will be available in the future.
