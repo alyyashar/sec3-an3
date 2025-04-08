@@ -90,7 +90,7 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   };
 
   const startReportGeneration = async () => {
-    if (!project?.audit_id) {
+    if (!project?.id) {
       console.warn("startReportGeneration: No audit_id found");
       return;
     }
