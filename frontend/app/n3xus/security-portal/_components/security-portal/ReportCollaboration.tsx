@@ -25,8 +25,9 @@ interface ReportProgress {
 }
 
 // This function simulates the progress response from the back end.
-// In a real implementation, replace this with polling of your API endpoint.
+// In a real implementation you would replace this with actual polling of your API endpoint.
 function simulateProgress(attempt: number): ReportProgress {
+  // Increase progress by 20 points every attempt.
   const progress = Math.min(attempt * 20, 100);
   const steps = {
     fetching_data: attempt >= 1,
@@ -35,6 +36,7 @@ function simulateProgress(attempt: number): ReportProgress {
     finalizing_pdf: attempt >= 4,
   };
   const status = progress === 100 ? "complete" : "in_progress";
+  console.log(`Simulated progress attempt ${attempt}:`, { progress, steps, status });
   return { status, progress, steps };
 }
 
@@ -53,7 +55,11 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   const [polling, setPolling] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Debug: Log the project data whenever the component renders
+  console.log("ReportCollaboration - project:", project);
+
   const handleViewReport = () => {
+    console.log("View report clicked, audit_id:", project?.audit_id);
     if (project?.audit_id) {
       router.push(`/n3xus/reports?auditId=${project.audit_id}`);
     }
@@ -61,42 +67,35 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
 
   const handleDownloadReport = async () => {
     console.log("Download PDF clicked!", project?.audit_id);
-    alert("Download PDF button clicked"); // Debug alert
+    alert("Download PDF button clicked");
+  
     if (!project?.audit_id) {
       console.warn("No audit_id found on project.");
       return;
     }
+  
     const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.audit_id}/report`;
     try {
-      // Fetch the PDF file as a Blob
       const res = await fetch(url, { method: "GET" });
+      console.log("Fetch initiated for URL:", url);
       if (!res.ok) {
         throw new Error(`Failed to fetch PDF: ${res.status} - ${res.statusText}`);
       }
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
+      console.log("Blob URL created:", blobUrl);
       window.open(blobUrl, "_blank");
-      // Uncomment the following line if you wish to revoke the object URL after a minute
-      // setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } catch (error: any) {
       console.error("Download error:", error);
       alert("Error downloading PDF: " + error.message);
     }
   };
 
-  // For debugging: Uncomment this block to test with a plain HTML button
-  /*
-  return (
-    <div>
-      <button onClick={() => alert("Plain HTML button clicked!")}>
-        Test Plain HTML Button
-      </button>
-    </div>
-  );
-  */
-
   const startReportGeneration = async () => {
-    if (!project?.audit_id) return;
+    if (!project?.audit_id) {
+      console.warn("startReportGeneration: No audit_id found");
+      return;
+    }
     if (!isPaidUser) return;
     setPolling(true);
     setReportState({
@@ -113,7 +112,6 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
     
     let attempts = 0;
     const maxAttempts = 6;
-
     const interval = setInterval(() => {
       attempts++;
       const newState = simulateProgress(attempts);
@@ -133,7 +131,6 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
     }, 2000);
   };
 
-  // Render an icon for a step depending on whether it's done.
   const renderStepIcon = (done: boolean) =>
     done ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Hourglass className="h-4 w-4 text-yellow-500" />;
 
@@ -153,7 +150,7 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
         )}
         {reportState.status === "in_progress" && polling && (
           <>
-            <p className="text-sm text-muted-foreground">Report generation in progress...</p>
+            <p className="text-sm text-muted-foreground">Report generation in progress... ({reportState.progress}%)</p>
             <Progress value={reportState.progress} className="h-2" />
             <ul className="mt-2 space-y-2">
               <li className="flex items-center space-x-2">
