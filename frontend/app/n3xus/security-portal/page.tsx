@@ -33,10 +33,10 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
-// Updated Project interface with audit_id
+// Updated Project interface to include audit_id.
 interface Project {
   id: string;
-  audit_id?: string; // New field to store the audit ID from backend
+  audit_id?: string;
   name: string;
   address: string;
   status: "In Progress" | "Completed" | "Pending";
@@ -55,26 +55,32 @@ export default function SecurityPortal() {
   useEffect(() => {
     fetch("https://sec3-an3-production.up.railway.app/api/scan/results")
       .then((res) => res.json())
-      .then((rawData) => {
-        // Expecting either an array or an object with a "projects" array.
-        let items = Array.isArray(rawData) ? rawData : rawData.projects;
-        if (!Array.isArray(items)) {
-          items = [];
+      .then((data) => {
+        let items: any[] = [];
+        // If data is already an array.
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (data.projects && Array.isArray(data.projects)) {
+          items = data.projects;
+        } else if (data.audit_id) {
+          // If data is a single audit result, convert it to an array.
+          items = [data];
         }
-
         // Map the API response to your Project interface.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
-          audit_id: item.audit_id, // Ensure audit_id is mapped from the backend response.
+          // Map audit_id from the top-level field.
+          audit_id: item.audit_id,
           name: item.contract_name || "Untitled Contract",
           address: item.contract_address || "",
-          status: "Pending", // Set a default or update based on your API
+          status: "Pending", // You can update this logic if needed.
           criticalIssues: item.criticalIssues || 0,
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
           timestamp: item.created_at || new Date().toISOString(),
-          scan_results: item.scan_results || {},
+          // Note: Your scan results are now stored under item.result.
+          scan_results: item.result || {},
         }));
 
         console.log("Mapped Projects:", mappedProjects);
@@ -169,12 +175,12 @@ export default function SecurityPortal() {
 
                   {/* ---------- OVERVIEW TAB ---------- */}
                   <TabsContent value="overview" className="space-y-4">
-                    {/* 1) Security Score */}
+                    {/* Security Score */}
                     <RiskScoreCard
                       score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
                     />
 
-                    {/* 2) AI Analysis Status */}
+                    {/* AI Analysis Status */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
@@ -190,7 +196,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* 3) Vulnerabilities */}
+                    {/* Vulnerabilities */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
@@ -260,7 +266,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* 4) Auto-Fix Suggestions */}
+                    {/* Auto-Fix Suggestions */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Auto-Fix Suggestions</CardTitle>
@@ -295,7 +301,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* 5) Project Progress */}
+                    {/* Project Progress */}
                     {(() => {
                       const scan = selectedProject?.scan_results || {};
                       const aiDone = !!scan?.ai_verification;
@@ -332,7 +338,7 @@ export default function SecurityPortal() {
                       );
                     })()}
 
-                    {/* 6) Audit Timeline */}
+                    {/* Audit Timeline */}
                     <Card>
                       <CardHeader>
                         <CardTitle>Audit Timeline</CardTitle>
