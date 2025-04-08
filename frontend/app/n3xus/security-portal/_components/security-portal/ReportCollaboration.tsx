@@ -8,11 +8,16 @@ import { CheckCircle, Hourglass } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface ReportCollaborationProps {
-  project: any;
+  project: {
+    // We only need 'id' for the PDF download:
+    id: string;
+    scan_results?: any;
+    // any other fields you might use...
+  };
   isPaidUser?: boolean;
 }
 
-// Define a type for the progress state
+// This describes the local state used for simulating multi-step PDF generation
 interface ReportProgress {
   status: "idle" | "in_progress" | "complete" | "error";
   progress: number;
@@ -24,10 +29,8 @@ interface ReportProgress {
   };
 }
 
-// This function simulates the progress response from the back end.
-// In a real implementation you would replace this with actual polling of your API endpoint.
+// Mocks an incremental progress approach for demonstration:
 function simulateProgress(attempt: number): ReportProgress {
-  // Increase progress by 20 points every attempt.
   const progress = Math.min(attempt * 20, 100);
   const steps = {
     fetching_data: attempt >= 1,
@@ -36,7 +39,6 @@ function simulateProgress(attempt: number): ReportProgress {
     finalizing_pdf: attempt >= 4,
   };
   const status = progress === 100 ? "complete" : "in_progress";
-  console.log(`Simulated progress attempt ${attempt}:`, { progress, steps, status });
   return { status, progress, steps };
 }
 
@@ -55,26 +57,24 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   const [polling, setPolling] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Debug: Log the project data whenever the component renders
-  console.log("ReportCollaboration - project:", project);
-
+  // For demonstration: If user wants to view a separate "report" page by ID:
   const handleViewReport = () => {
-    console.log("View report clicked, audit_id:", project?.audit_id);
-    if (project?.audit_id) {
-      router.push(`/n3xus/reports?auditId=${project.audit_id}`);
-    }
+    console.log("View report clicked, using project.id:", project?.id);
+    router.push(`/n3xus/reports?auditId=${project.id}`);
   };
 
+  // NOTE: We now use project.id for the PDF download
   const handleDownloadReport = async () => {
-    console.log("Download PDF clicked! Using project.id:", project.id);
+    console.log("Download PDF clicked! Using project.id:", project?.id);
     alert("Download PDF button clicked");
-  
+    
     if (!project?.id) {
       console.warn("No id found on project.");
       return;
     }
-  
+
     const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.id}/report`;
+
     try {
       const res = await fetch(url, { method: "GET" });
       if (!res.ok) {
@@ -89,9 +89,10 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
     }
   };
 
+  // For starting the "mock" generation process
   const startReportGeneration = async () => {
     if (!project?.id) {
-      console.warn("startReportGeneration: No audit_id found");
+      console.warn("startReportGeneration: No id found in project.");
       return;
     }
     if (!isPaidUser) return;
@@ -107,19 +108,19 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
       },
     });
     setErrorMsg("");
-    
+
     let attempts = 0;
     const maxAttempts = 6;
     const interval = setInterval(() => {
       attempts++;
       const newState = simulateProgress(attempts);
       setReportState(newState);
-      
+
       if (newState.status === "complete") {
         clearInterval(interval);
         setPolling(false);
       }
-      
+
       if (attempts >= maxAttempts && newState.status !== "complete") {
         setErrorMsg("Report generation timed out. Please try again later.");
         setReportState({ ...newState, status: "error" });
@@ -137,7 +138,8 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
       <CardHeader>
         <CardTitle>Report & Collaboration</CardTitle>
         <CardDescription>
-          Generate a detailed PDF report that summarizes your audit findings. Progress steps include fetching data, summarizing, designing the report, and finalizing the PDF.
+          Generate a detailed PDF report that summarizes your audit findings. 
+          Progress includes fetching data, summarizing, designing the report, and finalizing the PDF.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -146,6 +148,7 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
             {isPaidUser ? "Generate PDF Report" : "Generate PDF (Paid Tier)"}
           </Button>
         )}
+
         {reportState.status === "in_progress" && polling && (
           <>
             <p className="text-sm text-muted-foreground">Report generation in progress... ({reportState.progress}%)</p>
@@ -170,21 +173,26 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
             </ul>
           </>
         )}
+
         {reportState.status === "complete" && (
           <>
-            <p className="text-sm text-green-500">Report generation complete!</p>
+            <p className="text-sm text-green-500">Report Generation Completed</p>
             <div className="flex space-x-3">
               <Button onClick={handleViewReport}>View Report</Button>
               <Button onClick={handleDownloadReport}>Download PDF Report</Button>
             </div>
           </>
         )}
+
         {reportState.status === "error" && !polling && (
           <p className="text-sm text-red-500">{errorMsg}</p>
         )}
+
+        {/* Collaboration placeholder */}
         <div className="border rounded-lg p-3">
           <p className="text-sm text-muted-foreground">
-            Collaboration with security experts for manual review and bug bounties (N3ST) will be available in the future.
+            Collaboration with security experts for manual review and bug bounties 
+            (N3ST) will be available in the future.
           </p>
           <Button variant="outline" disabled>
             Request Expert Review (Coming Soon)
