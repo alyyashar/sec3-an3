@@ -55,7 +55,6 @@ export default function SecurityPortal() {
       .then((res) => res.json())
       .then((data) => {
         let items: any[] = [];
-        // Data could be an array or wrapped in a "projects" property or even a single object.
         if (Array.isArray(data)) {
           items = data;
         } else if (data.projects && Array.isArray(data.projects)) {
@@ -63,27 +62,38 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-        // Map the API response to your Project interface.
-        const mappedProjects: Project[] = items.map((item: any) => ({
-          id: item.id,
-          name: item.contract_name || "Untitled Contract",
-          address: item.contract_address || "",
-          status: "Pending", // Adjust as needed.
-          criticalIssues: item.criticalIssues || 0,
-          highIssues: item.highIssues || 0,
-          mediumIssues: item.mediumIssues || 0,
-          lowIssues: item.lowIssues || 0,
-          timestamp: item.created_at || new Date().toISOString(),
-          // Scan results are stored under "result" based on your sample JSON.
-          scan_results: item.result || {},
-        }));
-
+  
+        const mappedProjects: Project[] = items.map((item: any) => {
+          // The raw JSON has "result" which in turn has "scanner_results", "ai_verification", etc.
+          // We'll flatten them into scan_results to match your old references:
+          const { scanner_results = {}, ai_verification = {}, ai_remediation = {}, verified } = item.result || {};
+  
+          return {
+            id: item.id,
+            name: item.contract_name || "Untitled Contract",
+            address: item.contract_address || "",
+            status: "Pending",
+            criticalIssues: item.criticalIssues || 0,
+            highIssues: item.highIssues || 0,
+            mediumIssues: item.mediumIssues || 0,
+            lowIssues: item.lowIssues || 0,
+            timestamp: item.created_at || new Date().toISOString(),
+            // Build the final "scan_results" object
+            scan_results: {
+              // Flatten each piece so your code can access them
+              scanner_results,   // so you can do: scan_results.scanner_results
+              ai_verification,   // so you can do: scan_results.ai_verification
+              ai_remediation,    // so you can do: scan_results.ai_remediation
+              verified: verified // so you can do: scan_results.verified
+            },
+          };
+        });
+  
         console.log("Mapped Projects:", mappedProjects);
         setProjects(mappedProjects);
       })
       .catch((err) => console.error("Failed to fetch projects:", err));
   }, []);
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* ---------- HEADER SECTION ---------- */}
