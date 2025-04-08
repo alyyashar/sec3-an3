@@ -43,9 +43,30 @@ interface Project {
   scan_results?: any;
 }
 
+// Add this helper function before your component
+function computeRiskScore(project: Project): number | null {
+  const scanResults = project?.scan_results;
+  if (!scanResults) return null;
+  const scanner = scanResults.scanner_results;
+  const aiVer = scanResults.ai_verification;
+  if (!scanner) return null;
+  
+  const summary = scanner.summary || {};
+  const severityBreakdown = summary.severity_breakdown || {};
+
+  const highCount = (severityBreakdown["High"] || 0);
+  const mediumCount = (severityBreakdown["Medium"] || 0);
+  const lowCount = (severityBreakdown["Low"] || 0);
+  
+  // Simple risk formula: subtract weighted counts from 100
+  const score = 100 - (highCount * 30 + mediumCount * 15 + lowCount * 5);
+  return Math.max(score, 0);
+}
+
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+
 
   useEffect(() => {
     fetch("https://sec3-an3-production.up.railway.app/api/scan/results")
@@ -111,6 +132,7 @@ export default function SecurityPortal() {
         {/* ---------- /LEFT PANEL: PROJECTS LIST ---------- */}
 
         {/* ---------- RIGHT PANEL: PROJECT DETAILS ---------- */}
+        
         <div className="flex-1 overflow-auto">
           {selectedProject ? (
             <div className="h-full">
@@ -150,7 +172,7 @@ export default function SecurityPortal() {
                   <TabsContent value="overview" className="space-y-4">
                     {/* 1) Security Score */}
                     <RiskScoreCard
-                      score={selectedProject?.scan_results?.scanner_results?.score ?? 72}
+                      score={ selectedProject ? computeRiskScore(selectedProject) : null } />
                     />
 
                     {/* 2) AI Analysis Status */}
