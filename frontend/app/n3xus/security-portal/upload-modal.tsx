@@ -98,7 +98,7 @@ export function UploadContractModal() {
     if (!addressInput.trim()) return alert('Please enter a contract address.');
     setProcessing(true);
     try {
-      const response = await fetch(`${API_URL}/api/scan/address`, {
+      const response = await fetch(`${API_URL}/api/scan/contract`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: addressInput }),
