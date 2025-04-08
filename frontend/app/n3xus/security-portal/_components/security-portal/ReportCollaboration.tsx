@@ -61,9 +61,14 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   };
 
   const handleDownloadReport = () => {
-    if (!project?.audit_id) return;
-    // Assumes your backend serves the PDF at this endpoint:
-    window.open(`/api/scan/${project.audit_id}/report`, "_blank");
+    console.log("Download PDF clicked!", project?.audit_id);
+    alert("Download PDF button clicked");
+    if (!project?.audit_id) {
+      console.warn("No audit_id found on project.");
+      return;
+    }
+    const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.audit_id}/report`;
+    window.open(url, "_blank");
   };
 
   const startReportGeneration = async () => {
