@@ -66,24 +66,22 @@ export function ReportCollaboration({ project, isPaidUser = false }: ReportColla
   };
 
   const handleDownloadReport = async () => {
-    console.log("Download PDF clicked!", project?.audit_id);
+    console.log("Download PDF clicked! Using project.id:", project.id);
     alert("Download PDF button clicked");
   
-    if (!project?.audit_id) {
-      console.warn("No audit_id found on project.");
+    if (!project?.id) {
+      console.warn("No id found on project.");
       return;
     }
   
-    const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.audit_id}/report`;
+    const url = `https://sec3-an3-production.up.railway.app/api/scan/${project.id}/report`;
     try {
       const res = await fetch(url, { method: "GET" });
-      console.log("Fetch initiated for URL:", url);
       if (!res.ok) {
         throw new Error(`Failed to fetch PDF: ${res.status} - ${res.statusText}`);
       }
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
-      console.log("Blob URL created:", blobUrl);
       window.open(blobUrl, "_blank");
     } catch (error: any) {
       console.error("Download error:", error);

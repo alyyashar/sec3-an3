@@ -36,7 +36,6 @@ import { VerificationStatus } from "@/app/n3xus/security-portal/_components/secu
 // Updated Project interface to include audit_id.
 interface Project {
   id: string;
-  audit_id?: string;
   name: string;
   address: string;
   status: "In Progress" | "Completed" | "Pending";
