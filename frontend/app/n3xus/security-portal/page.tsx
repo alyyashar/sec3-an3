@@ -33,6 +33,7 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
+// Updated Project interface to include audit_id.
 interface Project {
   id: string;
   name: string;
@@ -46,21 +47,49 @@ interface Project {
   scan_results?: any;
 }
 
-
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
-
 
   useEffect(() => {
     fetch("https://sec3-an3-production.up.railway.app/api/scan/results")
       .then((res) => res.json())
       .then((data) => {
+        let items: any[] = [];
         if (Array.isArray(data)) {
-          setProjects(data);
-        } else if (Array.isArray(data.projects)) {
-          setProjects(data.projects);
+          items = data;
+        } else if (data.projects && Array.isArray(data.projects)) {
+          items = data.projects;
+        } else if (data.audit_id) {
+          items = [data];
         }
+
+        const mappedProjects: Project[] = items.map((item: any) => ({
+          id: item.id,
+          name: item.contract_name || "Untitled Contract",
+          address: item.contract_address || "",
+          status: "Pending", // Adjust as needed.
+          criticalIssues: item.criticalIssues || 0,
+          highIssues: item.highIssues || 0,
+          mediumIssues: item.mediumIssues || 0,
+          lowIssues: item.lowIssues || 0,
+          // Convert item.created_at properly.
+          timestamp: item.created_at
+            ? (typeof item.created_at === "number" || /^\d+$/.test(item.created_at)
+                ? new Date(Number(item.created_at) * 1000).toISOString()
+                : new Date(item.created_at).toISOString())
+            : new Date().toISOString(),
+          // Flatten the scan results from item.result.
+          scan_results: {
+            scanner_results: (item.result && item.result.scanner_results) || {},
+            ai_verification: (item.result && item.result.ai_verification) || {},
+            ai_remediation: (item.result && item.result.ai_remediation) || {},
+            verified: (item.result && item.result.verified) || false,
+          },
+        }));
+
+        console.log("Mapped Projects:", mappedProjects);
+        setProjects(mappedProjects);
       })
       .catch((err) => console.error("Failed to fetch projects:", err));
   }, []);
@@ -84,7 +113,7 @@ export default function SecurityPortal() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* ---------- LEFT PANEL: PROJECTS LIST ---------- */}
-        <div className="w-1/3 border-r flex flex-col overflow-hidden">
+        <div className="w-1/3 border-r flex flex-col overflow-auto">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Audit Projects</h2>
@@ -104,7 +133,6 @@ export default function SecurityPortal() {
           </div>
 
           <div className="flex-1 overflow-auto">
-            {/* Pass down the projects prop so ProjectList gets the data */}
             <ProjectList
               selectedProject={selectedProject}
               onSelectProject={setSelectedProject}
@@ -115,7 +143,6 @@ export default function SecurityPortal() {
         {/* ---------- /LEFT PANEL: PROJECTS LIST ---------- */}
 
         {/* ---------- RIGHT PANEL: PROJECT DETAILS ---------- */}
-        
         <div className="flex-1 overflow-auto">
           {selectedProject ? (
             <div className="h-full">
@@ -156,7 +183,7 @@ export default function SecurityPortal() {
                     {/* 1) Security Score */}
                     <RiskScoreCard
                       score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
-                      />
+                    />
 
                     {/* 2) AI Analysis Status */}
                     <Card>
@@ -166,7 +193,10 @@ export default function SecurityPortal() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-green-500">
-                          {selectedProject?.scan_results?.ai_verification ? "Complete" : "Pending"}
+                          {selectedProject?.scan_results?.ai_verification &&
+                          Object.keys(selectedProject.scan_results.ai_verification).length > 0
+                            ? "Complete"
+                            : "Pending"}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
@@ -210,7 +240,6 @@ export default function SecurityPortal() {
                               (vuln: any) =>
                                 vuln.severity === "High" || vuln.severity === "Critical"
                             ).length;
-
                             return (
                               <>
                                 {critical > 0 && (
@@ -255,7 +284,6 @@ export default function SecurityPortal() {
                           const fixes =
                             selectedProject?.scan_results?.ai_remediation?.fix_suggestions || [];
                           const fixCount = fixes.length;
-
                           return (
                             <>
                               <div className="text-2xl font-bold">{fixCount}</div>
@@ -284,10 +312,8 @@ export default function SecurityPortal() {
                       const scan = selectedProject?.scan_results || {};
                       const aiDone = !!scan?.ai_verification;
                       const fixesDone = (scan?.ai_remediation?.fix_suggestions || []).length > 0;
-
                       let progress = 25;
                       let phase = "Phase 1: Analysis Started";
-
                       if (aiDone) {
                         progress = 50;
                         phase = "Phase 2: AI Analysis";
@@ -300,7 +326,6 @@ export default function SecurityPortal() {
                         progress = 100;
                         phase = "Phase 4: Verified";
                       }
-
                       return (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
@@ -332,7 +357,6 @@ export default function SecurityPortal() {
                             const fixes = scan?.ai_remediation?.fix_suggestions || [];
                             const fixesDone = fixes.length > 0;
                             const isVerified = !!scan?.verified;
-
                             const timeline = [
                               {
                                 title: "Project Created",
@@ -376,7 +400,6 @@ export default function SecurityPortal() {
                                 status: isVerified ? "current" : "pending",
                               },
                             ];
-
                             return timeline.map((step, index) => (
                               <TimelineItem
                                 key={step.title}
@@ -403,7 +426,7 @@ export default function SecurityPortal() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                      <VulnerabilityAnalysis detailed={true} project={selectedProject} />
+                        <VulnerabilityAnalysis detailed={true} project={selectedProject} />
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -427,7 +450,7 @@ export default function SecurityPortal() {
 
                   {/* ---------- VERIFICATION TAB ---------- */}
                   <TabsContent value="verification" className="space-y-4">
-                  <ReportCollaboration project={selectedProject} isPaidUser={true} />
+                    <ReportCollaboration project={selectedProject} isPaidUser={true} />
                   </TabsContent>
                   {/* ---------- /VERIFICATION TAB ---------- */}
 
