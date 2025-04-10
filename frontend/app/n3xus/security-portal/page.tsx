@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { UploadContractModal } from "@/app/n3xus/security-portal/upload-modal";
-import { computeRiskScoreSWC } from "@/app/n3xus/security-portal/risk-scoring"; 
+import { computeRiskScoreSWC } from "@/app/n3xus/security-portal/risk-scoring";
 import { ReportCollaboration } from "@/app/n3xus/security-portal/_components/security-portal/ReportCollaboration";
 
 import {
@@ -17,7 +17,6 @@ import {
   Code,
   FileText,
   Search,
-  Upload,
   RefreshCw,
   Eye,
   Share2,
@@ -33,7 +32,7 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
-// Updated Project interface to include audit_id.
+// Updated Project interface remains the same
 interface Project {
   id: string;
   name: string;
@@ -45,6 +44,32 @@ interface Project {
   lowIssues: number;
   timestamp: string;
   scan_results?: any;
+}
+
+/**
+ * Helper function to determine if AI analysis is complete.
+ * Checks that at least one of the expected properties is populated.
+ */
+function isAIAnalysisComplete(aiVerification: any): boolean {
+  if (!aiVerification) return false;
+  
+  // Check if "verification" is present and is non-empty
+  const hasVerification =
+    aiVerification.verification &&
+    typeof aiVerification.verification === "object" &&
+    Object.keys(aiVerification.verification).length > 0;
+  
+  // Check if "false_positives" is a non-empty array
+  const hasFalsePositives =
+    Array.isArray(aiVerification.false_positives) &&
+    aiVerification.false_positives.length > 0;
+  
+  // Check if "missed_vulnerabilities" is a non-empty array
+  const hasMissed =
+    Array.isArray(aiVerification.missed_vulnerabilities) &&
+    aiVerification.missed_vulnerabilities.length > 0;
+  
+  return hasVerification || hasFalsePositives || hasMissed;
 }
 
 export default function SecurityPortal() {
@@ -63,23 +88,18 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-
+        // Map and flatten the API response so the scan_results are in the expected shape.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
           name: item.contract_name || "Untitled Contract",
           address: item.contract_address || "",
-          status: "Pending", // Adjust as needed.
+          status: "Pending",
           criticalIssues: item.criticalIssues || 0,
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
-          // Convert item.created_at properly.
-          timestamp: item.created_at
-            ? (typeof item.created_at === "number" || /^\d+$/.test(item.created_at)
-                ? new Date(Number(item.created_at) * 1000).toISOString()
-                : new Date(item.created_at).toISOString())
-            : new Date().toISOString(),
-          // Flatten the scan results from item.result.
+          // Adjust timestamp conversion if needed. Assuming created_at is an ISO string.
+          timestamp: item.created_at || new Date().toISOString(),
           scan_results: {
             scanner_results: (item.result && item.result.scanner_results) || {},
             ai_verification: (item.result && item.result.ai_verification) || {},
@@ -87,7 +107,6 @@ export default function SecurityPortal() {
             verified: (item.result && item.result.verified) || false,
           },
         }));
-
         console.log("Mapped Projects:", mappedProjects);
         setProjects(mappedProjects);
       })
@@ -193,8 +212,7 @@ export default function SecurityPortal() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-green-500">
-                          {selectedProject?.scan_results?.ai_verification &&
-                          Object.keys(selectedProject.scan_results.ai_verification).length > 0
+                          {isAIAnalysisComplete(selectedProject?.scan_results?.ai_verification)
                             ? "Complete"
                             : "Pending"}
                         </div>
@@ -569,4 +587,27 @@ function TimelineItem({ title, date, status, isLast = false }: TimelineItemProps
       </div>
     </li>
   );
+}
+
+/**
+ * IMPORTANT: To use a complete check for AI analysis, include the helper below.
+ * You might place this helper in a separate file if you prefer.
+ */
+function isAIAnalysisComplete(aiVerification: any): boolean {
+  if (!aiVerification) return false;
+
+  const hasVerification =
+    aiVerification.verification &&
+    typeof aiVerification.verification === "object" &&
+    Object.keys(aiVerification.verification).length > 0;
+
+  const hasFalsePositives =
+    Array.isArray(aiVerification.false_positives) &&
+    aiVerification.false_positives.length > 0;
+
+  const hasMissed =
+    Array.isArray(aiVerification.missed_vulnerabilities) &&
+    aiVerification.missed_vulnerabilities.length > 0;
+
+  return hasVerification || hasFalsePositives || hasMissed;
 }
