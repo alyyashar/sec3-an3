@@ -209,7 +209,7 @@ export default function SecurityPortal() {
                       </CardHeader>
                       <CardContent>
                         {/* For debugging purposes, log the ai_verification object */}
-                        {console.log("AI Verification Data:", selectedProject?.scan_results?.ai_verification)}
+                        {console.log("AI Verification Data (stringified):", JSON.stringify(selectedProject?.scan_results?.ai_verification, null, 2))}
                         <div className="text-2xl font-bold text-green-500">
                           {isAIAnalysisComplete(selectedProject?.scan_results?.ai_verification)
                             ? "Complete"
