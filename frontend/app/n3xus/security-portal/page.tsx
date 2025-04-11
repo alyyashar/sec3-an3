@@ -32,7 +32,27 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
-// Updated Project interface remains the same
+// Helper function to determine if AI analysis is complete.
+function isAIAnalysisComplete(aiVerification: any): boolean {
+  if (!aiVerification) return false;
+
+  const hasVerification =
+    aiVerification.verification &&
+    typeof aiVerification.verification === "object" &&
+    Object.keys(aiVerification.verification).length > 0;
+
+  const hasFalsePositives =
+    Array.isArray(aiVerification.false_positives) &&
+    aiVerification.false_positives.length > 0;
+
+  const hasMissed =
+    Array.isArray(aiVerification.missed_vulnerabilities) &&
+    aiVerification.missed_vulnerabilities.length > 0;
+
+  return hasVerification || hasFalsePositives || hasMissed;
+}
+
+// Updated Project interface (if you need to store additional keys, like audit_id)
 interface Project {
   id: string;
   name: string;
@@ -44,32 +64,6 @@ interface Project {
   lowIssues: number;
   timestamp: string;
   scan_results?: any;
-}
-
-/**
- * Helper function to determine if AI analysis is complete.
- * Checks that at least one of the expected properties is populated.
- */
-function isAIAnalysisComplete(aiVerification: any): boolean {
-  if (!aiVerification) return false;
-  
-  // Check if "verification" is present and is non-empty
-  const hasVerification =
-    aiVerification.verification &&
-    typeof aiVerification.verification === "object" &&
-    Object.keys(aiVerification.verification).length > 0;
-  
-  // Check if "false_positives" is a non-empty array
-  const hasFalsePositives =
-    Array.isArray(aiVerification.false_positives) &&
-    aiVerification.false_positives.length > 0;
-  
-  // Check if "missed_vulnerabilities" is a non-empty array
-  const hasMissed =
-    Array.isArray(aiVerification.missed_vulnerabilities) &&
-    aiVerification.missed_vulnerabilities.length > 0;
-  
-  return hasVerification || hasFalsePositives || hasMissed;
 }
 
 export default function SecurityPortal() {
@@ -88,7 +82,7 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-        // Map and flatten the API response so the scan_results are in the expected shape.
+        // Map and flatten API response to match expected structure.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
           name: item.contract_name || "Untitled Contract",
@@ -98,8 +92,8 @@ export default function SecurityPortal() {
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
-          // Adjust timestamp conversion if needed. Assuming created_at is an ISO string.
-          timestamp: item.created_at || new Date().toISOString(),
+          // Assume created_at is a valid ISO string. If it's numeric (UNIX seconds), convert accordingly.
+          timestamp: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
           scan_results: {
             scanner_results: (item.result && item.result.scanner_results) || {},
             ai_verification: (item.result && item.result.ai_verification) || {},
@@ -150,7 +144,6 @@ export default function SecurityPortal() {
               </Button>
             </div>
           </div>
-
           <div className="flex-1 overflow-auto">
             <ProjectList
               selectedProject={selectedProject}
@@ -587,27 +580,4 @@ function TimelineItem({ title, date, status, isLast = false }: TimelineItemProps
       </div>
     </li>
   );
-}
-
-/**
- * IMPORTANT: To use a complete check for AI analysis, include the helper below.
- * You might place this helper in a separate file if you prefer.
- */
-function isAIAnalysisComplete(aiVerification: any): boolean {
-  if (!aiVerification) return false;
-
-  const hasVerification =
-    aiVerification.verification &&
-    typeof aiVerification.verification === "object" &&
-    Object.keys(aiVerification.verification).length > 0;
-
-  const hasFalsePositives =
-    Array.isArray(aiVerification.false_positives) &&
-    aiVerification.false_positives.length > 0;
-
-  const hasMissed =
-    Array.isArray(aiVerification.missed_vulnerabilities) &&
-    aiVerification.missed_vulnerabilities.length > 0;
-
-  return hasVerification || hasFalsePositives || hasMissed;
 }
