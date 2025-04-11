@@ -418,18 +418,19 @@ export default function SecurityPortal() {
 
                   {/* SECURITY COPILOT TAB */}
                   <TabsContent value="copilot" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Security Copilot</CardTitle>
-                        <CardDescription>
-                          Live AI-assisted security feedback and guidance
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <SecurityCopilot />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+  <Card>
+    <CardHeader>
+      <CardTitle>Security Copilot</CardTitle>
+      <CardDescription>
+        Live AI-assisted security feedback and guidance
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      {/* Pass the audit_id (fallback to id if audit_id not defined) */}
+      <SecurityCopilot auditId={selectedProject?.audit_id || selectedProject?.id} />
+    </CardContent>
+  </Card>
+</TabsContent>
 
                   {/* VERIFICATION TAB */}
                   <TabsContent value="verification" className="space-y-4">
