@@ -34,25 +34,22 @@ import { VerificationStatus } from "@/app/n3xus/security-portal/_components/secu
 
 // Helper function to determine if AI analysis is complete.
 // Checks if at least one of the expected keys is non-empty.
-function isAIAnalysisComplete(aiVerification: any): boolean {
-  if (!aiVerification) return false;
+function getAIAnalysisStatus(aiVerification: any): string {
+  if (!aiVerification) return "Pending";
+  if (aiVerification.error) return "Error: " + aiVerification.error;
 
   const hasVerification =
     aiVerification.verification &&
     typeof aiVerification.verification === "object" &&
     Object.keys(aiVerification.verification).length > 0;
-
   const hasFalsePositives =
     Array.isArray(aiVerification.false_positives) &&
     aiVerification.false_positives.length > 0;
-
   const hasMissed =
     Array.isArray(aiVerification.missed_vulnerabilities) &&
     aiVerification.missed_vulnerabilities.length > 0;
 
-  // Debug: Log each condition
-  console.log("hasVerification:", hasVerification, "hasFalsePositives:", hasFalsePositives, "hasMissed:", hasMissed);
-  return hasVerification || hasFalsePositives || hasMissed;
+  return hasVerification || hasFalsePositives || hasMissed ? "Complete" : "Pending";
 }
 
 // Updated Project interface.
@@ -202,23 +199,23 @@ export default function SecurityPortal() {
 
                     {/* 2) AI Analysis Status */}
                     <Card>
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
-                        <Brain className="h-4 w-4 text-cyan-500" />
-                      </CardHeader>
-                      <CardContent>
-                        {/* Debug: Log the ai_verification object */}
-                        {console.log("AI Verification Data:", selectedProject?.scan_results?.ai_verification)}
-                        <div className="text-2xl font-bold text-green-500">
-                          {isAIAnalysisComplete(selectedProject?.scan_results?.ai_verification)
-                            ? "Complete"
-                            : "Pending"}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
-                        </p>
-                      </CardContent>
-                    </Card>
+  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
+    <Brain className="h-4 w-4 text-cyan-500" />
+  </CardHeader>
+  <CardContent>
+    {/*
+      Instead of the previous check, we now call getAIAnalysisStatus 
+      which will display "Complete", "Pending", or an error message.
+    */}
+    <div className="text-2xl font-bold text-green-500">
+      {getAIAnalysisStatus(selectedProject?.scan_results?.ai_verification)}
+    </div>
+    <p className="text-xs text-muted-foreground">
+      Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
+    </p>
+  </CardContent>
+</Card>
 
                     {/* 3) Vulnerabilities */}
                     <Card>
