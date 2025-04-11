@@ -12,13 +12,17 @@ interface Message {
   timestamp: Date;
 }
 
-export function SecurityCopilot() {
+interface SecurityCopilotProps {
+  auditId: string; // Pass the audit id from your selected project
+}
+
+export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
       content:
-        "Hello! I'm your N3XUS Security Copilot. I can help you understand security vulnerabilities, suggest fixes, and answer questions about smart contract security. How can I assist you today?",
+        "Hello! I'm your N3XUS Security Copilot. I can help you understand security vulnerabilities specific to your scanned contract. How can I assist you today?",
       timestamp: new Date(),
     },
   ]);
@@ -40,11 +44,11 @@ export function SecurityCopilot() {
     setIsLoading(true);
 
     try {
-      // Call the backend endpoint; note: endpoint is '/api/copilot' (no trailing slash)
+      // Now send the auditId along with the question.
       const response = await fetch("https://sec3-an3-production.up.railway.app/api/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: userMessage.content }),
+        body: JSON.stringify({ question: userMessage.content, audit_id: auditId }),
       });
 
       if (!response.ok) {
@@ -90,31 +94,21 @@ export function SecurityCopilot() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary"
+                message.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
-                {message.role === "user" ? (
-                  <User className="h-4 w-4" />
-                ) : (
-                  <Brain className="h-4 w-4 text-primary" />
-                )}
+                {message.role === "user" ? <User className="h-4 w-4" /> : <Brain className="h-4 w-4 text-primary" />}
                 <span className="text-xs font-medium">
                   {message.role === "user" ? "You" : "N3XUS Copilot"}
                 </span>
               </div>
               <div className="whitespace-pre-wrap">{message.content}</div>
-              <div className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString()}
-              </div>
+              <div className="text-xs mt-1 opacity-70">{message.timestamp.toLocaleTimeString()}</div>
             </div>
           </div>
         ))}
@@ -125,18 +119,9 @@ export function SecurityCopilot() {
               <div className="flex items-center space-x-2">
                 <Brain className="h-4 w-4 text-primary" />
                 <div className="flex space-x-1">
-                  <div
-                    className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                    style={{ animationDelay: "150ms" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                    style={{ animationDelay: "300ms" }}
-                  ></div>
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }}></div>
                 </div>
               </div>
             </div>
@@ -176,12 +161,7 @@ export function SecurityCopilot() {
               Suggest Fix
             </Button>
           </div>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-xs"
-            onClick={() => setMessages([])}
-          >
+          <Button variant="link" size="sm" className="text-xs" onClick={() => setMessages([])}>
             Clear conversation
           </Button>
         </div>
