@@ -7,49 +7,68 @@ from together import Together
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Placeholder: In production, supply the actual scanned contract data
+# Placeholder: In production, replace this with real scanned contract data
 SAMPLE_CONTRACT_DATA = {
     "contract_name": "ExampleToken",
     "summary": "ERC20-like token with potential reentrancy vulnerability.",
     "vulnerabilities": [
-        "Reentrancy in function withdraw()",
-        "Integer overflow in function addBalance()"
+        "reentrancy in function withdraw()",
+        "integer overflow in function addBalance()"
     ]
 }
 
 def answer_security_query(question: str, contract_data: dict = None) -> dict:
     """
     Uses Together AI to answer a security query for the Security Copilot.
-    
-    - Only answers questions related to the scanned contract.
-    - If the question is out of scope, responds with:
-      "I can only answer about the scanned contract vulnerabilities. Sorry."
-    - Responds with "I am AN3." if the user asks about its identity.
+    - Answers if the question references or relates to known vulnerabilities in contract_data.
+    - If user asks identity, returns "I am AN3."
+    - Otherwise, says "I can only answer about the scanned contract vulnerabilities. Sorry."
     """
-    
-    # Use provided contract_data or fall back to the sample
     if contract_data is None:
         contract_data = SAMPLE_CONTRACT_DATA
 
-    # 1) Check for identity questions
-    let_question = question.lower()
-    if "who are you" in let_question or "who created you" in let_question:
+    # 1) Hard-coded identity check
+    norm_q = question.lower()
+    if "who are you" in norm_q or "who created you" in norm_q:
         return {"answer": "I am AN3."}
 
-    # 2) Create prompt with strict instructions:
+    # 2) Convert known vulnerabilities to a simpler set of keywords
+    #    e.g. ["reentrancy", "integer overflow"]
+    #    We'll see if the user's question references these keywords
+    vulnerability_keywords = []
+    for v in contract_data["vulnerabilities"]:
+        # Example: "reentrancy in function withdraw()" -> "reentrancy"
+        # We'll just pick the first word or so. Or do a more robust approach below:
+        keywords = re.findall(r"[a-zA-Z0-9_]+", v.lower())
+        vulnerability_keywords.extend(keywords)
+    vulnerability_keywords = list(set(vulnerability_keywords))  # unique
+
+    # Quick approach: if user question includes any of these vulnerability words, 
+    # treat it as relevant. 
+    # e.g. if question = "What is reentrancy?" we see "reentrancy" is in the set => relevant
+    relevant = False
+    for kw in vulnerability_keywords:
+        if kw in norm_q:
+            relevant = True
+            break
+
+    if not relevant:
+        # If the question doesn't reference known vulnerabilities or the contract's name, we refuse
+        return {"answer": "I can only answer about the scanned contract vulnerabilities. Sorry."}
+
+    # 3) The question references at least one recognized vulnerability => we let the AI proceed
+    #    We embed the entire contract data in the prompt so the AI can be specific if it wants.
     prompt = f"""
-You are AN3, an AI specialized in smart contract security. 
-Below is the scanned contract information:
-    
+You are AN3, an AI specialized in analyzing ONLY the following contract data:
+
 {json.dumps(contract_data, indent=2)}
 
-Answer ONLY questions about the scanned contract vulnerabilities. 
-If the user's question is not directly relevant to this contract data, 
-respond with: "I can only answer about the scanned contract vulnerabilities. Sorry."
-    
-User question: "{question}"
+The user question: "{question}"
 
-Respond ONLY with the final answer with no markdown formatting.
+Instructions:
+1. If user references vulnerabilities present in the contract_data (like reentrancy or overflow),
+   answer concisely and specifically about the contract or the relevant vulnerability.
+2. Respond ONLY with your final text. No markdown. No extra commentary.
 """
 
     logger.debug(f"Constructed Security Copilot prompt:\n{prompt}")
@@ -82,8 +101,9 @@ Respond ONLY with the final answer with no markdown formatting.
         logger.error(f"Error during answer_security_query: {e}")
         return {"error": str(e)}
 
-# For testing purposes, you can call this function directly:
+# For a quick test
 if __name__ == '__main__':
-    sample_question = "What is a reentrancy vulnerability and how can it affect this contract?"
-    result = answer_security_query(sample_question)
-    print(result)
+    print(answer_security_query("What is reentrancy?"))
+    print(answer_security_query("Who created you?"))
+    print(answer_security_query("Are you a stable diffused AI?"))
+    print(answer_security_query("What about integer overflow?"))
