@@ -41,7 +41,7 @@ export function SecurityCopilot() {
 
     try {
       // Call the backend endpoint; note: endpoint is '/api/copilot' (no trailing slash)
-      const response = await fetch("/api/copilot", {
+      const response = await fetch("https://sec3-an3-production.up.railway.app/api/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userMessage.content }),
