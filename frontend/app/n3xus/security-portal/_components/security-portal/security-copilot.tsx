@@ -25,27 +25,25 @@ export function SecurityCopilot() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const sendQuery = async () => {
+  async function sendQuery() {
     if (!inputValue.trim()) return;
 
+    // Append user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
     };
-
-    // Append user's query to the conversation
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
 
     try {
+      // Call your backend endpoint for AI response
       const response = await fetch("/api/copilot", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userMessage.content }),
       });
 
@@ -76,17 +74,18 @@ export function SecurityCopilot() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && !e.shiftKey && !isLoading) {
       e.preventDefault();
       sendQuery();
     }
-  };
+  }
 
   return (
     <div className="flex flex-col h-[500px]">
+      {/* Messages list */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -98,8 +97,10 @@ export function SecurityCopilot() {
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
                 message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-gray-800"
+                  ? // OLD color scheme for user
+                    "bg-primary text-primary-foreground"
+                  : // OLD color scheme for assistant
+                    "bg-secondary"
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
@@ -145,6 +146,7 @@ export function SecurityCopilot() {
         )}
       </div>
 
+      {/* Input area */}
       <div className="p-4 border-t">
         <div className="flex space-x-2">
           <Input
@@ -164,6 +166,7 @@ export function SecurityCopilot() {
             )}
           </Button>
         </div>
+
         <div className="flex justify-between mt-2">
           <div className="flex space-x-2">
             <Button variant="outline" size="sm">
@@ -175,7 +178,12 @@ export function SecurityCopilot() {
               Suggest Fix
             </Button>
           </div>
-          <Button variant="link" size="sm" className="text-xs" onClick={() => setMessages([])}>
+          <Button
+            variant="link"
+            size="sm"
+            className="text-xs"
+            onClick={() => setMessages([])}
+          >
             Clear conversation
           </Button>
         </div>
