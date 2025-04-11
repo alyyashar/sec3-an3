@@ -40,7 +40,7 @@ export function SecurityCopilot() {
     setIsLoading(true);
 
     try {
-      // Call your backend endpoint for AI response
+      // Call the backend endpoint; note: endpoint is '/api/copilot' (no trailing slash)
       const response = await fetch("/api/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,10 +97,8 @@ export function SecurityCopilot() {
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
                 message.role === "user"
-                  ? // OLD color scheme for user
-                    "bg-primary text-primary-foreground"
-                  : // OLD color scheme for assistant
-                    "bg-secondary"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary"
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
