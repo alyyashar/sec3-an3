@@ -32,27 +32,37 @@ import { SecurityCopilot } from "@/app/n3xus/security-portal/_components/securit
 import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-portal/risk-score-card";
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
-// Helper function to determine if AI analysis is complete.
-// Checks if at least one of the expected keys is non-empty.
-function getAIAnalysisStatus(aiVerification: any): string {
-  if (!aiVerification) return "Pending";
-  if (aiVerification.error) return "Error: " + aiVerification.error;
+// ----------------------------------------------------------------------
+// Helper: Check if the AI verification data is complete.
+// This function handles both when "verification" is an array or an object.
+function isAIAnalysisComplete(aiVerification: any): boolean {
+  if (!aiVerification) return false;
 
-  const hasVerification =
+  let hasVerification = false;
+  if (Array.isArray(aiVerification.verification)) {
+    // If verification is an array, check its length.
+    hasVerification = aiVerification.verification.length > 0;
+  } else if (
     aiVerification.verification &&
-    typeof aiVerification.verification === "object" &&
-    Object.keys(aiVerification.verification).length > 0;
+    typeof aiVerification.verification === "object"
+  ) {
+    // If it is an object, check if it has at least one key.
+    hasVerification = Object.keys(aiVerification.verification).length > 0;
+  }
+
   const hasFalsePositives =
     Array.isArray(aiVerification.false_positives) &&
     aiVerification.false_positives.length > 0;
+
   const hasMissed =
     Array.isArray(aiVerification.missed_vulnerabilities) &&
     aiVerification.missed_vulnerabilities.length > 0;
 
-  return hasVerification || hasFalsePositives || hasMissed ? "Complete" : "Pending";
+  return hasVerification || hasFalsePositives || hasMissed;
 }
 
-// Updated Project interface.
+// ----------------------------------------------------------------------
+// Project Interface
 interface Project {
   id: string;
   name: string;
@@ -66,6 +76,7 @@ interface Project {
   scan_results?: any;
 }
 
+// ----------------------------------------------------------------------
 export default function SecurityPortal() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -82,7 +93,6 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-        // Map and flatten API response so that the expected structure is preserved.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
           name: item.contract_name || "Untitled Contract",
@@ -92,7 +102,7 @@ export default function SecurityPortal() {
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
-          // Ensure the timestamp is a valid ISO string.
+          // Assume created_at is a valid ISO string; adjust if necessary.
           timestamp: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
           scan_results: {
             scanner_results: (item.result && item.result.scanner_results) || {},
@@ -109,23 +119,21 @@ export default function SecurityPortal() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* ---------- HEADER SECTION ---------- */}
+      {/* HEADER */}
       <header className="border-b">
         <div className="flex my-4 h-16 items-center px-4 justify-between">
           <h1 className="text-xl font-bold">N3XUS AI-Powered Security Portal</h1>
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="sm">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
+              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
             </Button>
             <UploadContractModal />
           </div>
         </div>
       </header>
-      {/* ---------- /HEADER SECTION ---------- */}
 
       <div className="flex flex-1 overflow-hidden">
-        {/* ---------- LEFT PANEL: PROJECTS LIST ---------- */}
+        {/* LEFT PANEL: PROJECT LIST */}
         <div className="w-1/3 border-r flex flex-col overflow-auto">
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-4">
@@ -152,14 +160,13 @@ export default function SecurityPortal() {
             />
           </div>
         </div>
-        {/* ---------- /LEFT PANEL: PROJECTS LIST ---------- */}
 
-        {/* ---------- RIGHT PANEL: PROJECT DETAILS ---------- */}
+        {/* RIGHT PANEL: PROJECT DETAILS */}
         <div className="flex-1 overflow-auto">
           {selectedProject ? (
             <div className="h-full">
               <div className="p-6">
-                {/* ---------- Selected Project Header ---------- */}
+                {/* Project Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-2xl font-bold">{selectedProject?.name}</h2>
@@ -169,18 +176,15 @@ export default function SecurityPortal() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      View on Explorer
+                      <Eye className="mr-2 h-4 w-4" /> View on Explorer
                     </Button>
                     <Button variant="outline" size="sm">
-                      <Share2 className="mr-2 h-4 w-4" />
-                      Share
+                      <Share2 className="mr-2 h-4 w-4" /> Share
                     </Button>
                   </div>
                 </div>
-                {/* ---------- /Selected Project Header ---------- */}
 
-                {/* ---------- TABS ---------- */}
+                {/* Tabs */}
                 <Tabs defaultValue="overview" className="space-y-4">
                   <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -190,34 +194,34 @@ export default function SecurityPortal() {
                     <TabsTrigger value="attestation">Attestation</TabsTrigger>
                   </TabsList>
 
-                  {/* ---------- OVERVIEW TAB ---------- */}
+                  {/* OVERVIEW TAB */}
                   <TabsContent value="overview" className="space-y-4">
-                    {/* 1) Security Score */}
+                    {/* Security Score */}
                     <RiskScoreCard
                       score={selectedProject ? computeRiskScoreSWC(selectedProject) : null}
                     />
 
-                    {/* 2) AI Analysis Status */}
+                    {/* AI Analysis Status */}
                     <Card>
-  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-    <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
-    <Brain className="h-4 w-4 text-cyan-500" />
-  </CardHeader>
-  <CardContent>
-    {/*
-      Instead of the previous check, we now call getAIAnalysisStatus 
-      which will display "Complete", "Pending", or an error message.
-    */}
-    <div className="text-2xl font-bold text-green-500">
-      {getAIAnalysisStatus(selectedProject?.scan_results?.ai_verification)}
-    </div>
-    <p className="text-xs text-muted-foreground">
-      Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
-    </p>
-  </CardContent>
-</Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">AI Analysis Status</CardTitle>
+                        <Brain className="h-4 w-4 text-cyan-500" />
+                      </CardHeader>
+                      <CardContent>
+                        {/* For debugging purposes, log the ai_verification object */}
+                        {console.log("AI Verification Data:", selectedProject?.scan_results?.ai_verification)}
+                        <div className="text-2xl font-bold text-green-500">
+                          {isAIAnalysisComplete(selectedProject?.scan_results?.ai_verification)
+                            ? "Complete"
+                            : "Pending"}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Last updated: {new Date(selectedProject?.timestamp).toLocaleString()}
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                    {/* 3) Vulnerabilities */}
+                    {/* Vulnerabilities */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Vulnerabilities</CardTitle>
@@ -256,10 +260,7 @@ export default function SecurityPortal() {
                             return (
                               <>
                                 {critical > 0 && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-xs flex-1 min-w-max h-6"
-                                  >
+                                  <Badge variant="destructive" className="text-xs flex-1 min-w-max h-6">
                                     {critical} Critical
                                   </Badge>
                                 )}
@@ -286,7 +287,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* 4) Auto-Fix Suggestions */}
+                    {/* Auto-Fix Suggestions */}
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Auto-Fix Suggestions</CardTitle>
@@ -301,16 +302,10 @@ export default function SecurityPortal() {
                             <>
                               <div className="text-2xl font-bold">{fixCount}</div>
                               <p className="text-xs text-muted-foreground">
-                                {fixCount > 0
-                                  ? "Ready to implement"
-                                  : "No auto-fixes generated"}
+                                {fixCount > 0 ? "Ready to implement" : "No auto-fixes generated"}
                               </p>
                               {fixCount > 0 && (
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  className="px-0 h-6 mt-1"
-                                >
+                                <Button variant="link" size="sm" className="px-0 h-6 mt-1">
                                   Apply fixes <ArrowRight className="ml-1 h-3 w-3" />
                                 </Button>
                               )}
@@ -320,7 +315,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
 
-                    {/* 5) Project Progress */}
+                    {/* Project Progress */}
                     {(() => {
                       const scan = selectedProject?.scan_results || {};
                       const aiDone = !!scan?.ai_verification;
@@ -342,25 +337,19 @@ export default function SecurityPortal() {
                       return (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-medium">
-                              Project Progress: {progress}%
-                            </h3>
-                            <span className="text-sm text-muted-foreground">
-                              {phase}
-                            </span>
+                            <h3 className="font-medium">Project Progress: {progress}%</h3>
+                            <span className="text-sm text-muted-foreground">{phase}</span>
                           </div>
                           <Progress value={progress} className="h-2" />
                         </div>
                       );
                     })()}
 
-                    {/* 6) Audit Timeline */}
+                    {/* Audit Timeline */}
                     <Card>
                       <CardHeader>
                         <CardTitle>Audit Timeline</CardTitle>
-                        <CardDescription>
-                          Project milestones and verification steps
-                        </CardDescription>
+                        <CardDescription>Project milestones and verification steps</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <ol className="relative border-l border-muted">
@@ -427,9 +416,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  {/* ---------- /OVERVIEW TAB ---------- */}
-
-                  {/* ---------- VULNERABILITIES TAB ---------- */}
+                  {/* VULNERABILITIES TAB */}
                   <TabsContent value="vulnerabilities" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -443,31 +430,23 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  {/* ---------- /VULNERABILITIES TAB ---------- */}
-
-                  {/* ---------- SECURITY COPILOT TAB ---------- */}
+                  {/* SECURITY COPILOT TAB */}
                   <TabsContent value="copilot" className="space-y-4">
                     <Card>
                       <CardHeader>
                         <CardTitle>Security Copilot</CardTitle>
-                        <CardDescription>
-                          Live AI-assisted security feedback and guidance
-                        </CardDescription>
+                        <CardDescription>Live AI-assisted security feedback and guidance</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <SecurityCopilot />
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  {/* ---------- /SECURITY COPILOT TAB ---------- */}
-
-                  {/* ---------- VERIFICATION TAB ---------- */}
+                  {/* VERIFICATION TAB */}
                   <TabsContent value="verification" className="space-y-4">
                     <ReportCollaboration project={selectedProject} isPaidUser={true} />
                   </TabsContent>
-                  {/* ---------- /VERIFICATION TAB ---------- */}
-
-                  {/* ---------- ATTESTATION TAB ---------- */}
+                  {/* ATTESTATION TAB */}
                   <TabsContent value="attestation" className="space-y-4">
                     <Card>
                       <CardHeader>
@@ -521,9 +500,7 @@ export default function SecurityPortal() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  {/* ---------- /ATTESTATION TAB ---------- */}
                 </Tabs>
-                {/* ---------- /TABS ---------- */}
               </div>
             </div>
           ) : (
@@ -533,24 +510,20 @@ export default function SecurityPortal() {
                   <FileText className="h-10 w-10 text-muted-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold">No Project Selected</h3>
-                <p className="text-muted-foreground">
-                  Select a project from the list or create a new audit
-                </p>
+                <p className="text-muted-foreground">Select a project from the list or create a new audit</p>
                 <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Audit
+                  <Plus className="mr-2 h-4 w-4" /> New Audit
                 </Button>
               </div>
             </div>
           )}
         </div>
-        {/* ---------- /RIGHT PANEL: PROJECT DETAILS ---------- */}
       </div>
     </div>
   );
 }
 
-/* ---------- TIMELINE ITEM COMPONENT ---------- */
+/* Timeline Item Component */
 interface TimelineItemProps {
   title: string;
   date: string;
@@ -571,9 +544,7 @@ function TimelineItem({ title, date, status, isLast = false }: TimelineItemProps
         )}
       </span>
       <div className="flex items-center justify-between">
-        <h3 className={`font-medium ${status === "pending" ? "text-muted-foreground" : ""}`}>
-          {title}
-        </h3>
+        <h3 className={`font-medium ${status === "pending" ? "text-muted-foreground" : ""}`}>{title}</h3>
         <time className="text-xs text-muted-foreground">{date}</time>
       </div>
     </li>
