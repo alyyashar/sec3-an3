@@ -33,6 +33,7 @@ import { RiskScoreCard } from "@/app/n3xus/security-portal/_components/security-
 import { VerificationStatus } from "@/app/n3xus/security-portal/_components/security-portal/verification-status";
 
 // Helper function to determine if AI analysis is complete.
+// Checks if at least one of the expected keys is non-empty.
 function isAIAnalysisComplete(aiVerification: any): boolean {
   if (!aiVerification) return false;
 
@@ -49,10 +50,12 @@ function isAIAnalysisComplete(aiVerification: any): boolean {
     Array.isArray(aiVerification.missed_vulnerabilities) &&
     aiVerification.missed_vulnerabilities.length > 0;
 
+  // Debug: Log each condition
+  console.log("hasVerification:", hasVerification, "hasFalsePositives:", hasFalsePositives, "hasMissed:", hasMissed);
   return hasVerification || hasFalsePositives || hasMissed;
 }
 
-// Updated Project interface (if you need to store additional keys, like audit_id)
+// Updated Project interface.
 interface Project {
   id: string;
   name: string;
@@ -82,7 +85,7 @@ export default function SecurityPortal() {
         } else if (data.audit_id) {
           items = [data];
         }
-        // Map and flatten API response to match expected structure.
+        // Map and flatten API response so that the expected structure is preserved.
         const mappedProjects: Project[] = items.map((item: any) => ({
           id: item.id,
           name: item.contract_name || "Untitled Contract",
@@ -92,7 +95,7 @@ export default function SecurityPortal() {
           highIssues: item.highIssues || 0,
           mediumIssues: item.mediumIssues || 0,
           lowIssues: item.lowIssues || 0,
-          // Assume created_at is a valid ISO string. If it's numeric (UNIX seconds), convert accordingly.
+          // Ensure the timestamp is a valid ISO string.
           timestamp: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
           scan_results: {
             scanner_results: (item.result && item.result.scanner_results) || {},
@@ -204,6 +207,8 @@ export default function SecurityPortal() {
                         <Brain className="h-4 w-4 text-cyan-500" />
                       </CardHeader>
                       <CardContent>
+                        {/* Debug: Log the ai_verification object */}
+                        {console.log("AI Verification Data:", selectedProject?.scan_results?.ai_verification)}
                         <div className="text-2xl font-bold text-green-500">
                           {isAIAnalysisComplete(selectedProject?.scan_results?.ai_verification)
                             ? "Complete"
@@ -490,7 +495,6 @@ export default function SecurityPortal() {
                               Pending
                             </Badge>
                           </div>
-
                           <div className="p-4 border rounded-lg">
                             <h4 className="font-medium mb-2">ZKP Verification Details</h4>
                             <div className="space-y-2 text-sm">
@@ -508,13 +512,10 @@ export default function SecurityPortal() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Status:</span>
-                                <span className="text-yellow-500">
-                                  Awaiting Final Verification
-                                </span>
+                                <span className="text-yellow-500">Awaiting Final Verification</span>
                               </div>
                             </div>
                           </div>
-
                           <div className="flex justify-end space-x-2">
                             <Button variant="outline">Preview Attestation</Button>
                             <Button disabled>Generate Attestation</Button>
