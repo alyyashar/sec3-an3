@@ -1,236 +1,281 @@
 "use client"
 
+import { Shield, Activity, Bug, Search, TrendingUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Shield, Activity, Bug, ChevronRight, ArrowRight } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import FortaAlerts from "@/components/analytics/forta-alerts"
-import TotalAmountLost from "@/components/analytics/amount-loss"
-import TopDeFiExploits from "@/components/analytics/top-exploits"
 
-export default function LandingPage() {
+export default function Dashboard() {
   return (
-    <>
-      <title>N3 Security Suite</title>
-      <div className="min-h-screen bg-[#121212] text-white">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-b from-[#1a1a1a] to-[#121212] py-16">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col items-center text-center mb-12">
-              <div className="flex items-center mb-6">
-                <Shield className="h-12 w-12 mr-3 text-[#4ee2b5]" />
-                <h1 className="text-4xl md:text-5xl font-bold">N3 Security Suite</h1>
-              </div>
-              <p className="text-xl text-gray-400 max-w-2xl mb-8">
-                Comprehensive blockchain security solutions powered by advanced AI technology
-              </p>
-              <div className="flex flex-wrap gap-4 justify-center">
-                <Link href="/n3/solutions">
-                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040] px-6 py-6 text-lg">
-                    Explore Solutions
-                    <ChevronRight className="h-5 w-5 ml-2" />
-                  </Button>
-                </Link>
-                <Link href="/about">
-                  <Button variant="outline" className="border-[#333] hover:bg-[#1a1a1a] px-6 py-6 text-lg">
-                    Learn More
-                  </Button>
-                </Link>
-              </div>
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      {/* Header */}
+      <header className="border-b border-[#222] bg-[#121212]">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-md bg-[#1e3a2f] flex items-center justify-center">
+              <Shield className="h-6 w-6 text-[#4ee2b5]" />
+            </div>
+            <h1 className="text-2xl font-bold">N3</h1>
+          </div>
+
+          <div className="text-xl font-semibold">Security Command Center</div>
+
+          <div className="flex items-center gap-4">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input placeholder="Search" className="pl-10 bg-[#1a1a1a] border-[#333] text-white" />
+            </div>
+            <div className="h-9 w-9 rounded-full bg-[#1e3a2f] flex items-center justify-center">
+              <span className="text-[#4ee2b5]">👤</span>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Products Section */}
-        <div className="py-16 container mx-auto px-6">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold mb-4">Our Security Products</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Choose from our suite of specialized security tools designed to protect your blockchain assets
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <Link href={"/n3xus"}>
-              <Card className="border-none hover:scale-[1.02] transition-all duration-300 rounded-xl overflow-hidden bg-[#0f2620]">
-                <div className="h-2 w-full bg-gradient-to-r from-[#4ee2b5] to-[#2a8066]" />
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-white text-2xl">
-                    <Shield className="w-6 h-6 text-[#4ee2b5]" />
-                    N3XUS
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-6">
-                    Smart contract auditing with AI-powered verification and real-time reporting
-                  </p>
-                  <ul className="space-y-3 text-gray-400 mb-6">
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#1e3a2f] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#4ee2b5] text-xs">✓</span>
-                      </div>
-                      Automated contract scanning
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#1e3a2f] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#4ee2b5] text-xs">✓</span>
-                      </div>
-                      AI-enhanced verification
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#1e3a2f] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#4ee2b5] text-xs">✓</span>
-                      </div>
-                      PDF report generation
-                    </li>
-                  </ul>
-                  <Button className="w-full bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">
-                    Access N3XUS
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href={"/n3rv"}>
-              <Card className="border-none hover:scale-[1.02] transition-all duration-300 rounded-xl overflow-hidden bg-[#231a36]">
-                <div className="h-2 w-full bg-gradient-to-r from-[#a36bfd] to-[#5a3c8e]" />
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-white text-2xl">
-                    <Activity className="w-6 h-6 text-[#a36bfd]" />
-                    N3RV
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-6">
-                    Real-time monitoring engine for blockchain events and anomaly detection
-                  </p>
-                  <ul className="space-y-3 text-gray-400 mb-6">
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#2a1f40] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#a36bfd] text-xs">✓</span>
-                      </div>
-                      Event monitoring
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#2a1f40] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#a36bfd] text-xs">✓</span>
-                      </div>
-                      Anomaly detection
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#2a1f40] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#a36bfd] text-xs">✓</span>
-                      </div>
-                      Multi-channel alerts
-                    </li>
-                  </ul>
-                  <Button className="w-full bg-[#2a1f40] text-[#a36bfd] hover:bg-[#352650]">
-                    Access N3RV
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href={"/n3st"}>
-              <Card className="border-none hover:scale-[1.02] transition-all duration-300 rounded-xl overflow-hidden bg-[#2e1e05]">
-                <div className="h-2 w-full bg-gradient-to-r from-[#f59e0b] to-[#b97708]" />
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-white text-2xl">
-                    <Bug className="w-6 h-6 text-[#f59e0b]" />
-                    N3ST
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-6">Community-driven red team and bug bounty platform</p>
-                  <ul className="space-y-3 text-gray-400 mb-6">
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#3d2807] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#f59e0b] text-xs">✓</span>
-                      </div>
-                      Bug bounty programs
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#3d2807] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#f59e0b] text-xs">✓</span>
-                      </div>
-                      Token rewards
-                    </li>
-                    <li className="flex items-start">
-                      <div className="h-5 w-5 rounded-full bg-[#3d2807] flex items-center justify-center mr-2 mt-0.5">
-                        <span className="text-[#f59e0b] text-xs">✓</span>
-                      </div>
-                      Community challenges
-                    </li>
-                  </ul>
-                  <Button className="w-full bg-[#3d2807] text-[#f59e0b] hover:bg-[#4d3209]">
-                    Access N3ST
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        </div>
-
-        {/* Analytics Preview Section */}
-        <div className="py-16">
-          <div className="container mx-auto px-6">
-            <div className="mb-12 text-center">
-              <h2 className="text-3xl font-bold mb-4">Security Analytics</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">
-                Preview our security analytics capabilities that help you stay ahead of threats
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <FortaAlerts />
-              <TopDeFiExploits />
-            </div>
-
-            <div className="mb-12">
-              <TotalAmountLost />
-            </div>
-
-            <div className="text-center">
-              <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040] px-6 py-6 text-lg">
-                Get Full Access
-                <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <footer className="bg-[#0a0a0a] py-12">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center mb-6 md:mb-0">
-                <Shield className="h-8 w-8 mr-2 text-[#4ee2b5]" />
-                <span className="text-xl font-bold">N3 Security Suite</span>
+      {/* Main Content */}
+      <main className="container mx-auto px-6 py-8">
+        {/* Product Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* N3XUS Card */}
+          <Card className="bg-[#121212] border-[#222] hover:border-[#1e3a2f] transition-colors">
+            <CardContent className="p-6 flex flex-col h-full">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3XUS</h2>
+                  <h3 className="text-lg font-semibold mb-2">AI-Powered Smart Contract Auditing</h3>
+                </div>
+                <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
+                  <Shield className="h-7 w-7 text-[#4ee2b5]" />
+                </div>
               </div>
-              <div className="flex gap-6">
-                <Link href="#" className="text-gray-400 hover:text-white">
-                  About
-                </Link>
-                <Link href="#" className="text-gray-400 hover:text-white">
-                  Features
-                </Link>
-                <Link href="#" className="text-gray-400 hover:text-white">
-                  Documentation
-                </Link>
-                <Link href="#" className="text-gray-400 hover:text-white">
-                  Contact
+              <p className="text-gray-400 mb-6">Utilize AI for auditing smart contracts.</p>
+              <div className="mt-auto">
+                <Link href="/n3xus" className="">
+                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
                 </Link>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* N3RV Card */}
+          <Card className="bg-[#121212] border-[#222] hover:border-[#1e3a2f] transition-colors">
+            <CardContent className="p-6 flex flex-col h-full">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3RV</h2>
+                  <h3 className="text-lg font-semibold mb-2">Real-Time Anomaly Detection</h3>
+                </div>
+                <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-[#4ee2b5]" />
+                </div>
+              </div>
+              <p className="text-gray-400 mb-6">Monitor blockchain activity continuously.</p>
+              <div className="mt-auto">
+                <Link href="/n3rv">
+                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* N3ST Card */}
+          <Card className="bg-[#121212] border-[#222] hover:border-[#1e3a2f] transition-colors">
+            <CardContent className="p-6 flex flex-col h-full">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3ST</h2>
+                  <h3 className="text-lg font-semibold mb-2">Community-Driven Red Teaming & Bug Bounty</h3>
+                </div>
+                <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
+                  <Bug className="h-7 w-7 text-[#4ee2b5]" />
+                </div>
+              </div>
+              <p className="text-gray-400 mb-6">Engage users in finding and reporting vulnerabilities.</p>
+              <div className="mt-auto">
+                <Link href="/n3st">
+                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex gap-6">
+          {/* Stats Cards */}
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {/* Recent Hacks */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <h3 className="text-sm font-medium text-gray-400 mb-1">Recent Hacks</h3>
+                    <div className="text-4xl font-bold">32</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Total Funds Lost */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-medium text-gray-400 mb-1">Total Funds Lost in 2025</h3>
+                      <div className="text-4xl font-bold">$1.82B</div>
+                    </div>
+                    <div className="h-12 w-12 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full bg-[#1e3a2f] border-4 border-[#4ee2b5]"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Top 5 Most Attacked */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <h3 className="text-sm font-medium text-gray-400 mb-1">Top 5 Most Attacked Contracts</h3>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-sm">1. UniswapV3 Pool</div>
+                      <div className="text-sm">2. AAVE Lending</div>
+                      <div className="text-sm">3. Curve Finance</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Gas Spike Alerts */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardContent className="p-6">
+                  <div className="flex flex-col">
+                    <h3 className="text-sm font-medium text-gray-400 mb-1">Gas Spike Alerts</h3>
+                    <div className="text-4xl font-bold">6%</div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <div className="border-t border-[#311c1c] mt-8 pt-8 text-center text-gray-500 text-sm">
-              © 2025 N3 Security Suite. All rights reserved.
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Attack Trends */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">Attack Trends Overview</CardTitle>
+                  <Button variant="link" className="text-[#4ee2b5] p-0">
+                    Daily &gt;
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-[300px] flex items-center justify-center">
+                    <div className="relative w-full h-full">
+                      {/* Simplified chart visualization */}
+                      <div className="absolute inset-0 flex items-end">
+                        <div className="flex-1 flex items-end space-x-2">
+                          {[30, 45, 25, 60, 40, 75, 50, 65, 35, 70, 55, 80].map((height, i) => (
+                            <div key={i} className="flex-1">
+                              <div
+                                className="bg-gradient-to-t from-[#1e3a2f] to-[#4ee2b5] rounded-sm"
+                                style={{ height: `${height}%` }}
+                              ></div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Trend lines */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <TrendingUp className="h-16 w-16 text-[#4ee2b5] opacity-20" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Funds Lost by Attack Type */}
+              <Card className="bg-[#121212] border-[#222]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Funds Lost in 2025 by Attack Type</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex">
+                    <div className="w-1/2 flex items-center justify-center">
+                      <div className="relative h-40 w-40 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border-8 border-[#4ee2b5] clip-half"></div>
+                        <div className="text-2xl font-bold">50%</div>
+                      </div>
+                    </div>
+                    <div className="w-1/2 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-3 w-3 bg-[#4ee2b5] rounded-full mr-2"></div>
+                          <span>Reentrancy</span>
+                        </div>
+                        <span>30%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-3 w-3 bg-[#2a5040] rounded-full mr-2"></div>
+                          <span>Flash Loans</span>
+                        </div>
+                        <span>20%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-3 w-3 bg-[#1e3a2f] rounded-full mr-2"></div>
+                          <span>Rugpulls</span>
+                        </div>
+                        <span>20%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-3 w-3 bg-[#173025] rounded-full mr-2"></div>
+                          <span>Oracle Attacks</span>
+                        </div>
+                        <span>15%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="h-3 w-3 bg-[#0f201a] rounded-full mr-2"></div>
+                          <span>Other</span>
+                        </div>
+                        <span>15%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </footer>
-      </div>
-    </>
+          <div className="h-full">
+            {/* Top Chains Affected */}
+            <Card className="bg-[#121212] border-[#222] row-span-2 h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Top Chains Affected</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span>Ethereum</span>
+                    <span className="font-semibold">$1.2B</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>BNB Chain</span>
+                    <span className="font-semibold">$300M</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Solana</span>
+                    <span className="font-semibold">$350M</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Polygon</span>
+                    <span className="font-semibold">$310M</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }

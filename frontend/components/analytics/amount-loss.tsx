@@ -63,8 +63,8 @@ const TotalAmountLost = () => {
       {
         label: "Amount Lost ($)",
         data: quarterlyData,
-        backgroundColor: ["#FF5733", "#FFBD33", "#75FF33", "#3375FF"],  // Colors for the bars
-        borderColor: ["#FF5733", "#FFBD33", "#75FF33", "#3375FF"],
+        backgroundColor: ["#4ee2b5"],  // Colors for the bars
+        borderColor: ["#4ee2b5"],
         borderWidth: 1
       }
     ]
