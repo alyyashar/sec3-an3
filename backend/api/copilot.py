@@ -7,7 +7,7 @@ router = APIRouter()
 class CopilotQuery(BaseModel):
     question: str
 
-@router.post("/")
+@router.post("")
 async def get_copilot_answer(query: CopilotQuery):
     result = answer_security_query(query.question)
     if "error" in result:
