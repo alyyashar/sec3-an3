@@ -13,7 +13,7 @@ interface Message {
 }
 
 interface SecurityCopilotProps {
-  auditId: string; // Pass the audit id from your selected project
+  auditId: string; // This should be provided from the selected project's scan result.
 }
 
 export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
@@ -32,7 +32,7 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
   async function sendQuery() {
     if (!inputValue.trim()) return;
 
-    // Append user message
+    // Append the user's message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -44,7 +44,7 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
     setIsLoading(true);
 
     try {
-      // Now send the auditId along with the question.
+      // Call the backend endpoint with the auditId and user query.
       const response = await fetch("https://sec3-an3-production.up.railway.app/api/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,7 +89,7 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
 
   return (
     <div className="flex flex-col h-[500px]">
-      {/* Messages list */}
+      {/* Messages List */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -98,7 +98,9 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
           >
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
+                message.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary"
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
@@ -108,7 +110,9 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
                 </span>
               </div>
               <div className="whitespace-pre-wrap">{message.content}</div>
-              <div className="text-xs mt-1 opacity-70">{message.timestamp.toLocaleTimeString()}</div>
+              <div className="text-xs mt-1 opacity-70">
+                {message.timestamp.toLocaleTimeString()}
+              </div>
             </div>
           </div>
         ))}
@@ -129,7 +133,7 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
         )}
       </div>
 
-      {/* Input area */}
+      {/* Input Area */}
       <div className="p-4 border-t">
         <div className="flex space-x-2">
           <Input
@@ -161,7 +165,12 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
               Suggest Fix
             </Button>
           </div>
-          <Button variant="link" size="sm" className="text-xs" onClick={() => setMessages([])}>
+          <Button
+            variant="link"
+            size="sm"
+            className="text-xs"
+            onClick={() => setMessages([])}
+          >
             Clear conversation
           </Button>
         </div>
