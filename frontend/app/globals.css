@@ -78,3 +78,49 @@
 .dashboard-button {
   @apply bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040] transition-colors;
 }
+
+/* Clip path for half circle charts */
+.clip-half {
+  clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%, 50% 0);
+}
+
+/* Responsive container styles */
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .container {
+    max-width: 2400px;
+  }
+}
+
+/* Responsive card scaling */
+@media (min-width: 1536px) {
+  .dashboard-card {
+    @apply p-6;
+  }
+
+  .text-4xl {
+    font-size: 2.5rem;
+  }
+}
+
+/* Ensure charts scale properly */
+.chart-container {
+  @apply w-full h-full min-h-[300px];
+}
+
+@media (min-width: 1920px) {
+  .chart-container {
+    min-height: 400px;
+  }
+}

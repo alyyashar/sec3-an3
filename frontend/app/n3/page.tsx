@@ -11,21 +11,14 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Header */}
       <header className="border-b border-[#222] bg-[#121212]">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-md bg-[#1e3a2f] flex items-center justify-center">
-              <Shield className="h-6 w-6 text-[#4ee2b5]" />
-            </div>
             <h1 className="text-2xl font-bold">N3</h1>
           </div>
 
           <div className="text-xl font-semibold">Security Command Center</div>
 
           <div className="flex items-center gap-4">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input placeholder="Search" className="pl-10 bg-[#1a1a1a] border-[#333] text-white" />
-            </div>
             <div className="h-9 w-9 rounded-full bg-[#1e3a2f] flex items-center justify-center">
               <span className="text-[#4ee2b5]">👤</span>
             </div>
@@ -34,9 +27,9 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8">
         {/* Product Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* N3XUS Card */}
           <Card className="bg-[#121212] border-[#222] hover:border-[#1e3a2f] transition-colors">
             <CardContent className="p-6 flex flex-col h-full">
@@ -101,10 +94,10 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="flex gap-6">
-          {/* Stats Cards */}
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <div className="lg:w-3/4">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* Recent Hacks */}
               <Card className="bg-[#121212] border-[#222]">
                 <CardContent className="p-6">
@@ -156,7 +149,7 @@ export default function Dashboard() {
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* Attack Trends */}
               <Card className="bg-[#121212] border-[#222]">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
@@ -246,9 +239,9 @@ export default function Dashboard() {
               </Card>
             </div>
           </div>
-          <div className="h-full">
+          <div className="lg:w-1/4">
             {/* Top Chains Affected */}
-            <Card className="bg-[#121212] border-[#222] row-span-2 h-full">
+            <Card className="bg-[#121212] border-[#222] h-full">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Top Chains Affected</CardTitle>
               </CardHeader>
