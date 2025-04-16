@@ -13,7 +13,7 @@ interface SmartContract {
   created_at: string
 }
 
-export function ContractAuditTable() {
+export function ContractAuditTable({ audits }: any) {
   const [contracts, setContracts] = useState<SmartContract[]>([])
 
   useEffect(() => {

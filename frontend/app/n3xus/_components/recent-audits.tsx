@@ -32,7 +32,7 @@ const recentAudits = [
   },
 ]
 
-export function RecentAudits() {
+export function RecentAudits(audit : any) {
   return (
     <div className="space-y-4">
       {recentAudits.map((audit) => (

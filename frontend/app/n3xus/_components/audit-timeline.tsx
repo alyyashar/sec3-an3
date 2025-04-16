@@ -41,7 +41,7 @@ const timelineItems = [
   },
 ]
 
-export function AuditTimeline() {
+export function AuditTimeline(audits : any) {
   return (
     <div className="space-y-8">
       {timelineItems.map((item) => (

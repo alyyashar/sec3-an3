@@ -1,5 +1,3 @@
-import { MainDashboard } from '@/app/n3xus/dashboard/_components/main-dashboard';
-import { AppSidebar } from '@/components/app-sidebar';
 import DashboardPage from './n3/page';
 
 export default function Home() {

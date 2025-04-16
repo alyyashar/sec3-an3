@@ -51,13 +51,21 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+        // Product-specific colors
+        n3xus: {
+          primary: "#4ee2b5",
+          bg: "#1e3a2f",
+          hover: "#2a5040",
+        },
+        n3rv: {
+          primary: "#a36bfd",
+          bg: "#2a1f40",
+          hover: "#352650",
+        },
+        n3st: {
+          primary: "#f59e0b",
+          bg: "#3d2807",
+          hover: "#4d3209",
         },
       },
       borderRadius: {
@@ -83,4 +91,3 @@ module.exports = {
   },
   plugins: [require("tailwindcss-animate")],
 }
-

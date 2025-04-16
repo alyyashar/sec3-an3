@@ -44,7 +44,7 @@ export default function Dashboard() {
               </div>
               <p className="text-gray-400 mb-6">Utilize AI for auditing smart contracts.</p>
               <div className="mt-auto">
-                <Link href="/n3xus" className="">
+                <Link href="/n3xus/dashboard" className="">
                   <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
                 </Link>
               </div>
