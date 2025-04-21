@@ -13,7 +13,7 @@ interface Message {
 }
 
 interface SecurityCopilotProps {
-  auditId: string; // This should be provided from the selected project's scan result.
+  auditId: string;
 }
 
 export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
@@ -31,148 +31,104 @@ export function SecurityCopilot({ auditId }: SecurityCopilotProps) {
 
   async function sendQuery() {
     if (!inputValue.trim()) return;
-
-    // Append the user's message
-    const userMessage: Message = {
+    const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((m) => [...m, userMsg]);
     setInputValue("");
     setIsLoading(true);
 
     try {
-      // Call the backend endpoint with the auditId and user query.
-      const response = await fetch("https://sec3-an3-production.up.railway.app/api/copilot", {
+      const res = await fetch("/api/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: userMessage.content, audit_id: auditId }),
+        body: JSON.stringify({
+          question: userMsg.content,
+          audit_id: auditId,
+        }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const answer = data.answer || "Sorry, I couldn't generate a response.";
-
-      const aiMessage: Message = {
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const data = await res.json();
+      const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: answer,
+        content: data.answer,
         timestamp: new Date(),
       };
-
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (error: any) {
-      console.error("Error fetching AI answer:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Error: Could not retrieve answer.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((m) => [...m, aiMsg]);
+    } catch (err) {
+      console.error("Copilot error:", err);
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: "Error: Could not retrieve answer.",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
-      e.preventDefault();
-      sendQuery();
-    }
-  }
-
   return (
     <div className="flex flex-col h-[500px]">
-      {/* Messages List */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary"
-              }`}
-            >
+        {messages.map((msg) => (
+          <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[80%] rounded-lg p-3 ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
               <div className="flex items-center space-x-2 mb-1">
-                {message.role === "user" ? <User className="h-4 w-4" /> : <Brain className="h-4 w-4 text-primary" />}
-                <span className="text-xs font-medium">
-                  {message.role === "user" ? "You" : "N3XUS Copilot"}
-                </span>
+                {msg.role === "user" ? <User className="h-4 w-4" /> : <Brain className="h-4 w-4 text-primary" />}
+                <span className="text-xs font-medium">{msg.role === "user" ? "You" : "N3XUS Copilot"}</span>
               </div>
-              <div className="whitespace-pre-wrap">{message.content}</div>
-              <div className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString()}
-              </div>
+              <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className="text-xs mt-1 opacity-70">{msg.timestamp.toLocaleTimeString()}</div>
             </div>
           </div>
         ))}
-
         {isLoading && (
           <div className="flex justify-start">
             <div className="max-w-[80%] rounded-lg p-3 bg-secondary">
               <div className="flex items-center space-x-2">
                 <Brain className="h-4 w-4 text-primary" />
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Input Area */}
       <div className="p-4 border-t">
         <div className="flex space-x-2">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask about security vulnerabilities..."
-            onKeyDown={handleKeyDown}
             disabled={isLoading}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !isLoading) {
+                e.preventDefault();
+                sendQuery();
+              }
+            }}
           />
           <Button onClick={sendQuery} disabled={isLoading || !inputValue.trim()}>
-            {isLoading ? (
-              <div className="animate-spin">
-                <Brain className="h-4 w-4" />
-              </div>
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {isLoading ? <Brain className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
-
         <div className="flex justify-between mt-2">
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Zap className="h-3 w-3 mr-1" />
-              Explain Vulnerability
-            </Button>
-            <Button variant="outline" size="sm">
-              <Zap className="h-3 w-3 mr-1" />
-              Suggest Fix
-            </Button>
+            <Button variant="outline" size="sm"><Zap className="h-3 w-3 mr-1" />Explain Vulnerability</Button>
+            <Button variant="outline" size="sm"><Zap className="h-3 w-3 mr-1" />Suggest Fix</Button>
           </div>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-xs"
-            onClick={() => setMessages([])}
-          >
-            Clear conversation
-          </Button>
+          <Button variant="link" size="sm" className="text-xs" onClick={() => setMessages([])}>Clear conversation</Button>
         </div>
       </div>
     </div>
