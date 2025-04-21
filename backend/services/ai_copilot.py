@@ -9,90 +9,58 @@ logger.setLevel(logging.INFO)
 
 def answer_security_query(question: str, contract_data: dict) -> dict:
     """
-    Uses Together AI to answer a security query for the Security Copilot.
-    - Answers questions specifically about the scanned contract's vulnerabilities.
-    - If the user asks "who are you" or "who created you", returns "AN3".
-    - If the question does not seem to be related to the scan results, responds with an out-of-scope message.
-    - Requires real contract scan data (contract_data) to be provided.
+    - Uses real scan_results JSON from the DB.
+    - Only answers about those vulnerabilities.
+    - Identity check for "who are you"/"who created you" -> "AN3".
     """
     if not contract_data:
         return {"error": "No contract data provided."}
-    
-    # Identity check:
-    const_question = question.lower()
-    if "who are you" in const_question or "who created you" in const_question:
+
+    ql = question.lower()
+    if "who are you" in ql or "who created you" in ql:
         return {"answer": "AN3"}
 
-    # Gather vulnerability keywords from the scan results.
-    vulnerability_keywords = set()
-    
-    # Extract keywords from vulnerabilities in the scanner_results
-    scanner_results = contract_data.get("scanner_results", {})
-    vulns = scanner_results.get("vulnerabilities", [])
-    for vuln in vulns:
-        # Use the issue/title text to extract words
-        text = (vuln.get("issue") or vuln.get("title") or "").lower()
-        vulnerability_keywords.update(text.split())
-    
-    # Extract keywords from missed vulnerabilities in the ai_verification section, if present.
-    ai_verif = contract_data.get("ai_verification", {})
-    # Try both common patterns: as an array in "missed_vulnerabilities" or inside "verification"
-    if isinstance(ai_verif.get("missed_vulnerabilities"), list):
-        for vuln in ai_verif["missed_vulnerabilities"]:
-            text = (vuln.get("issue") or vuln.get("title") or "").lower()
-            vulnerability_keywords.update(text.split())
-    elif isinstance(ai_verif.get("verification"), list):
-        # In some responses, vulnerabilities could appear as a list in the 'verification' key.
-        for vuln in ai_verif["verification"]:
-            text = (vuln.get("issue") or vuln.get("title") or "").lower()
-            vulnerability_keywords.update(text.split())
-    
-    # Check if the user's question references any of the known keywords.
-    const_question = question.lower()
-    relevant = any(kw in const_question for kw in vulnerability_keywords)
-    
-    if not relevant:
+    # build keyword set
+    keywords = set()
+    sr = contract_data.get("scanner_results", {})
+    for v in sr.get("vulnerabilities", []):
+        text = (v.get("issue") or v.get("title") or "").lower()
+        keywords.update(text.split())
+
+    ai_ver = contract_data.get("ai_verification", {})
+    for section in ("missed_vulnerabilities", "verification"):
+        for v in ai_ver.get(section, []):
+            text = (v.get("issue") or v.get("title") or "").lower()
+            keywords.update(text.split())
+
+    if not any(kw in ql for kw in keywords):
         return {"answer": "I can only answer questions regarding the scanned contract vulnerabilities. Sorry."}
-    
-    # Construct a prompt including the real contract scan results.
+
+    # craft prompt
     prompt = (
-        "You are a smart contract security expert. You have been provided with the following scan results:\n\n"
+        "You are a smart contract security expert. You have this scan result:\n\n"
         + json.dumps(contract_data, indent=2)
-        + "\n\nAnswer the following question concisely and based on the scan results:\n"
+        + "\n\nAnswer briefly, based solely on it:\n"
         + question
-        + "\n\nRespond ONLY with the answer, without any additional commentary or markdown formatting."
+        + "\n\nRespond ONLY with the answer, no markdown or extra text."
     )
-    
-    logger.debug(f"Constructed Security Copilot prompt:\n{prompt}")
+    logger.debug("Prompt for Copilot:\n%s", prompt)
 
-    messages = [{"role": "user", "content": prompt}]
-    logger.debug(f"Prepared chat messages: {messages}")
-
-    together_api_key = os.getenv("TOGETHER_API_KEY")
-    if not together_api_key:
-        logger.error("TOGETHER_API_KEY environment variable not set.")
+    api_key = os.getenv("TOGETHER_API_KEY")
+    if not api_key:
         return {"error": "TOGETHER_API_KEY environment variable not set."}
-    
-    client = Together(api_key=together_api_key)
 
+    client = Together(api_key=api_key)
     try:
-        response = client.chat.completions.create(
+        resp = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
-            messages=messages,
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=300
+            max_tokens=300,
         )
-        raw_text = response.choices[0].message.content.strip()
-        
-        # Clean up markdown formatting, if any.
-        answer = re.sub(r"```(?:json|solidity)?\s*|```", "", raw_text).strip()
-        logger.debug(f"Security Copilot response: {answer}")
+        raw = resp.choices[0].message.content.strip()
+        answer = re.sub(r"```(?:json|solidity)?\s*|```", "", raw).strip()
         return {"answer": answer}
     except Exception as e:
-        logger.error(f"Error during answer_security_query: {e}")
+        logger.error("AI error: %s", e)
         return {"error": str(e)}
-
-# For quick local testing (remove or comment out in production)
-if __name__ == '__main__':
-    # Expect real data to be passed; this should fail since we don't have it.
-    print(answer_security_query("What is reentrancy?", {}))
