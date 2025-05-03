@@ -184,7 +184,7 @@ export default function SecurityPortal() {
                 </div>
 
                 {/* ---------- TABS ---------- */}
-                <Tabs defaultValue="overview" className="space-y-4">
+                <Tabs key={selectedProject.id} defaultValue="overview" className="space-y-4">
                   <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
