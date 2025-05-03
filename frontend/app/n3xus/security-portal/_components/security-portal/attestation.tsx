@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,32 +12,17 @@ interface AttestationProps {
 
 export function Attestation({ auditId }: AttestationProps) {
   const [loading, setLoading] = useState(false);
-  const [attestation, setAttestation] = useState<any>(null);
+  const [attestation, setAttestation] = useState<{
+    attestation_hash: string;
+    method: string;
+    chain: string;
+    status: string;
+    created_at: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = "https://sec3-an3-production.up.railway.app"; // 🔥 Hardcoded as requested
+  const API_BASE = "https://sec3-an3-production.up.railway.app";
 
-  // 🔄 Fetch existing attestation on mount
-  useEffect(() => {
-    const fetchAttestation = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE}/api/attestation/${auditId}`);
-        if (!res.ok) return;
-
-        const data = await res.json();
-        setAttestation(data);
-      } catch (err) {
-        console.warn("No existing attestation or failed to fetch.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAttestation();
-  }, [auditId]);
-
-  // 🛠 Generate new attestation
   const generateAttestation = async () => {
     setLoading(true);
     setError(null);
@@ -45,17 +30,11 @@ export function Attestation({ auditId }: AttestationProps) {
       const res = await fetch(`${API_BASE}/api/attestation/${auditId}`, {
         method: "POST",
       });
-
-      const text = await res.text();
       if (!res.ok) {
-        let maybeJson = {};
-        try {
-          maybeJson = JSON.parse(text);
-        } catch {}
-        throw new Error((maybeJson as any).detail || "Failed to generate attestation.");
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to generate attestation");
       }
-
-      const data = JSON.parse(text);
+      const data = await res.json();
       setAttestation(data);
     } catch (err: any) {
       setError(err.message || "Unexpected error.");
