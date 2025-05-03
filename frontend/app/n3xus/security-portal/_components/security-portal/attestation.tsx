@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import {
+  Card, CardHeader, CardTitle, CardDescription, CardContent
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
@@ -12,17 +14,27 @@ interface AttestationProps {
 
 export function Attestation({ auditId }: AttestationProps) {
   const [loading, setLoading] = useState(false);
-  const [attestation, setAttestation] = useState<{
-    attestation_hash: string;
-    method: string;
-    chain: string;
-    status: string;
-    created_at: string;
-  } | null>(null);
+  const [attestation, setAttestation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE = "https://sec3-an3-production.up.railway.app";
 
+  // 🔄 Fetch any existing attestation when component mounts or auditId changes
+  useEffect(() => {
+    const fetchExisting = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/attestation/${auditId}`);
+        if (!res.ok) return; // 404 means "not generated yet"
+        const data = await res.json();
+        setAttestation(data);
+      } catch {
+        // ignore
+      }
+    };
+    fetchExisting();
+  }, [auditId]);
+
+  // 🛠 Generate new attestation
   const generateAttestation = async () => {
     setLoading(true);
     setError(null);
@@ -72,7 +84,9 @@ export function Attestation({ auditId }: AttestationProps) {
             <div className="p-4 border rounded-lg space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Attestation Hash:</span>
-                <span className="font-mono truncate max-w-xs">{attestation.attestation_hash}</span>
+                <span className="font-mono truncate max-w-xs">
+                  {attestation.attestation_hash}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Verification Method:</span>
@@ -90,7 +104,9 @@ export function Attestation({ auditId }: AttestationProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">No attestation has been generated yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No attestation has been generated yet.
+            </p>
             <Button onClick={generateAttestation} disabled={loading}>
               {loading ? "Generating..." : "Generate Attestation"}
             </Button>
