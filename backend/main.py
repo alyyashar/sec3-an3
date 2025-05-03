@@ -16,12 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(scan_router, prefix="/api/scan", tags=["scan"])  
 app.include_router(copilot_router, prefix="/api/copilot", tags=["copilot"])
 app.include_router(attestation_router, prefix="/api/attestation", tags=["attestation"])
 
-# Ensure DB tables are created
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")

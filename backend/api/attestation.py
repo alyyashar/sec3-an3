@@ -7,7 +7,8 @@ import random
 from db.models import AuditResult
 from db.database import get_db
 
-router = APIRouter(prefix="/api/attestation", tags=["attestation"])
+# No prefix here—prefix is applied in main.py
+router = APIRouter(tags=["attestation"])
 
 # -------------------------------
 # Util: Create fake attestation
@@ -32,7 +33,7 @@ def generate_attestation(audit_id: str, db: Session = Depends(get_db)):
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found")
 
-    # TODO: Save attestation in DB/IPFS
+    # TODO: Persist attestation to DB or IPFS here
     attestation = generate_fake_attestation_data(audit_id)
 
     return attestation
@@ -46,7 +47,7 @@ def get_attestation(audit_id: str, db: Session = Depends(get_db)):
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found")
 
-    # Simulated logic: even IDs have attestations
+    # Simulated: even-numbered UUIDs have attestations
     try:
         audit_int = int(audit.id)
     except ValueError:
