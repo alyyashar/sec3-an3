@@ -1,5 +1,3 @@
-# backend/api/attestation.py
-
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -9,7 +7,8 @@ import json
 from db.models import AuditResult
 from db.database import get_db
 
-router = APIRouter(tags=["attestation"])
+# 1. Define the prefix here, not in the decorators below
+router = APIRouter(prefix="/api/attestation", tags=["attestation"])
 
 def make_attestation_from_scan(audit: AuditResult) -> dict:
     """
@@ -33,8 +32,9 @@ def make_attestation_from_scan(audit: AuditResult) -> dict:
         "created_at": datetime.utcnow().isoformat()
     }
 
-# POST /api/attestation/{audit_id}
-@router.post("/api/attestation/{audit_id}")
+# 2. Use relative paths here since prefix is already /api/attestation
+
+@router.post("/{audit_id}")
 def generate_attestation(audit_id: str, db: Session = Depends(get_db)):
     """
     Generate (or regenerate) an attestation for the given audit_id
@@ -43,26 +43,14 @@ def generate_attestation(audit_id: str, db: Session = Depends(get_db)):
     audit = db.query(AuditResult).filter_by(id=audit_id).first()
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found")
+    return make_attestation_from_scan(audit)
 
-    attestation = make_attestation_from_scan(audit)
-
-    # Optional: persist to DB here if you add a column to AuditResult
-    # audit.attestation = attestation
-    # db.commit()
-
-    return attestation
-
-# GET /api/attestation/{audit_id}
-@router.get("/api/attestation/{audit_id}")
+@router.get("/{audit_id}")
 def get_attestation(audit_id: str, db: Session = Depends(get_db)):
     """
     Fetch the current attestation for the given audit_id.
-    If you persist it, you could pull from a column; here
-    we recompute it on-the-fly from scan_results.
     """
     audit = db.query(AuditResult).filter_by(id=audit_id).first()
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found")
-
-    # Re-use the same logic to produce the attestation
     return make_attestation_from_scan(audit)
