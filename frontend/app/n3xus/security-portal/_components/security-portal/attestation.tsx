@@ -15,12 +15,7 @@ export function Attestation({ auditId }: AttestationProps) {
   const [attestation, setAttestation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  // Validate .env setup
-  if (!API_BASE) {
-    console.error("❌ NEXT_PUBLIC_API_BASE_URL is not set.");
-  }
+  const API_BASE = "https://sec3-an3-production.up.railway.app"; // 🔥 Hardcoded as requested
 
   // 🔄 Fetch existing attestation on mount
   useEffect(() => {
@@ -39,8 +34,8 @@ export function Attestation({ auditId }: AttestationProps) {
       }
     };
 
-    if (API_BASE) fetchAttestation();
-  }, [auditId, API_BASE]);
+    fetchAttestation();
+  }, [auditId]);
 
   // 🛠 Generate new attestation
   const generateAttestation = async () => {
@@ -53,8 +48,11 @@ export function Attestation({ auditId }: AttestationProps) {
 
       const text = await res.text();
       if (!res.ok) {
-        const maybeJson = text && JSON.parse(text);
-        throw new Error(maybeJson?.detail || "Failed to generate attestation.");
+        let maybeJson = {};
+        try {
+          maybeJson = JSON.parse(text);
+        } catch {}
+        throw new Error((maybeJson as any).detail || "Failed to generate attestation.");
       }
 
       const data = JSON.parse(text);
