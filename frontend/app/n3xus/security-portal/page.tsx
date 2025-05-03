@@ -10,6 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { UploadContractModal } from "@/app/n3xus/security-portal/upload-modal";
 import { computeRiskScoreSWC } from "@/app/n3xus/security-portal/risk-scoring";
 import { ReportCollaboration } from "@/app/n3xus/security-portal/_components/security-portal/ReportCollaboration";
+import { Attestation } from "@/app/n3xus/security-portal/_components/security-portal/attestation";
+
 
 import {
   AlertTriangle,
@@ -439,57 +441,7 @@ export default function SecurityPortal() {
 
                   {/* ATTESTATION TAB */}
                   <TabsContent value="attestation" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Decentralized & Transparent Attestation</CardTitle>
-                        <CardDescription>
-                          Zero-knowledge proofs (ZKPs) for verifiable security attestations
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <ShieldCheck className="h-6 w-6 text-green-500" />
-                              <div>
-                                <h4 className="font-medium">Security Attestation</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  Verifiable on-chain proof of security audit
-                                </p>
-                              </div>
-                            </div>
-                            <Badge variant="outline" className="border-green-500 text-green-500">
-                              Pending
-                            </Badge>
-                          </div>
-                          <div className="p-4 border rounded-lg">
-                            <h4 className="font-medium mb-2">ZKP Verification Details</h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Attestation Hash:</span>
-                                <span className="font-mono">0x7a9d...e3f2</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Verification Method:</span>
-                                <span>Zero-Knowledge Proof</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Attestation Chain:</span>
-                                <span>Ethereum</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status:</span>
-                                <span className="text-yellow-500">Awaiting Final Verification</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline">Preview Attestation</Button>
-                            <Button disabled>Generate Attestation</Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {selectedProject?.id && <Attestation auditId={selectedProject.id} />}
                   </TabsContent>
                 </Tabs>
               </div>
