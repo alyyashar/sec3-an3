@@ -15,36 +15,49 @@ export function Attestation({ auditId }: AttestationProps) {
   const [attestation, setAttestation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  // Validate .env setup
+  if (!API_BASE) {
+    console.error("❌ NEXT_PUBLIC_API_BASE_URL is not set.");
+  }
+
   // 🔄 Fetch existing attestation on mount
   useEffect(() => {
     const fetchAttestation = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/attestation/${auditId}`);
+        const res = await fetch(`${API_BASE}/api/attestation/${auditId}`);
         if (!res.ok) return;
+
         const data = await res.json();
         setAttestation(data);
       } catch (err) {
-        // Do nothing silently
+        console.warn("No existing attestation or failed to fetch.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAttestation();
-  }, [auditId]);
+    if (API_BASE) fetchAttestation();
+  }, [auditId, API_BASE]);
 
   // 🛠 Generate new attestation
   const generateAttestation = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/attestation/${auditId}`, {
+      const res = await fetch(`${API_BASE}/api/attestation/${auditId}`, {
         method: "POST",
       });
-      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.detail || "Failed to generate attestation.");
+      const text = await res.text();
+      if (!res.ok) {
+        const maybeJson = text && JSON.parse(text);
+        throw new Error(maybeJson?.detail || "Failed to generate attestation.");
+      }
+
+      const data = JSON.parse(text);
       setAttestation(data);
     } catch (err: any) {
       setError(err.message || "Unexpected error.");
