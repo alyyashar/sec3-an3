@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import {
-  Card, CardHeader, CardTitle, CardDescription, CardContent
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,12 +27,14 @@ export function Attestation({ auditId }: AttestationProps) {
   useEffect(() => {
     const fetchExisting = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/attestation/${auditId}`);
-        if (!res.ok) return; // 404 means "not generated yet"
+        const res = await fetch(
+          `${API_BASE}/api/attestation/${auditId}`
+        );
+        if (!res.ok) return; // 404 = not generated yet
         const data = await res.json();
         setAttestation(data);
       } catch {
-        // ignore
+        // ignore network errors
       }
     };
     fetchExisting();
@@ -39,9 +45,10 @@ export function Attestation({ auditId }: AttestationProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/attestation/${auditId}`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${API_BASE}/api/attestation/${auditId}`,
+        { method: "POST" }
+      );
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Failed to generate attestation");
@@ -76,7 +83,10 @@ export function Attestation({ auditId }: AttestationProps) {
                   </p>
                 </div>
               </div>
-              <Badge variant="outline" className="border-green-500 text-green-500">
+              <Badge
+                variant="outline"
+                className="border-green-500 text-green-500"
+              >
                 {attestation.status}
               </Badge>
             </div>
@@ -84,12 +94,14 @@ export function Attestation({ auditId }: AttestationProps) {
             <div className="p-4 border rounded-lg space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Attestation Hash:</span>
-                <span className="font-mono truncate max-w-xs">
+                <span className="font-mono break-all">
                   {attestation.attestation_hash}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Verification Method:</span>
+                <span className="text-muted-foreground">
+                  Verification Method:
+                </span>
                 <span>{attestation.method}</span>
               </div>
               <div className="flex justify-between">
@@ -98,7 +110,9 @@ export function Attestation({ auditId }: AttestationProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Created At:</span>
-                <span>{new Date(attestation.created_at).toLocaleString()}</span>
+                <span>
+                  {new Date(attestation.created_at).toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
@@ -112,7 +126,11 @@ export function Attestation({ auditId }: AttestationProps) {
             </Button>
           </div>
         )}
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm mt-2">
+            {error}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
