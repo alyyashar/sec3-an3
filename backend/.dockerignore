@@ -1,0 +1,16 @@
+# Common entries
+node_modules
+.env
+.git
+.vscode
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+dist
+build
+
+# Optional
+*.sqlite3
+*.db
+*.egg-info/
