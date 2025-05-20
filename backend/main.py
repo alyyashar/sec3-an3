@@ -4,9 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.scan import router as scan_router
 from api.copilot import router as copilot_router
 from api.attestation import router as attestation_router
+from auth.auth_router import router as auth_router  
 
 from db.database import Base, engine
-import db.models  # ensure models are imported so tables get created
+import db.models
 
 app = FastAPI(title="N3XUS API", version="1.0.0")
 
@@ -18,9 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ Routers
 app.include_router(scan_router, prefix="/api/scan", tags=["scan"])
 app.include_router(copilot_router, prefix="/api/copilot", tags=["copilot"])
-app.include_router(attestation_router)  # router already has prefix=/api/attestation
+app.include_router(attestation_router)
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 Base.metadata.create_all(bind=engine)
 
