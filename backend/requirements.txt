@@ -43,16 +43,10 @@ web3==7.8.0
 websockets==13.1
 yarl==1.18.3
 python-multipart
-llama-cpp-python==0.2.60
-torch
-transformers
-peft
-huggingface_hub
 together==1.2.4
 python-dotenv
 openai
 pytest
-psycopg2-binary
 sqlalchemy
 Jinja2 
 weasyprint

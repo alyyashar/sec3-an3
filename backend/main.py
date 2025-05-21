@@ -23,7 +23,7 @@ app.add_middleware(
 app.include_router(scan_router, prefix="/api/scan", tags=["scan"])
 app.include_router(copilot_router, prefix="/api/copilot", tags=["copilot"])
 app.include_router(attestation_router)
-app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 Base.metadata.create_all(bind=engine)
 
