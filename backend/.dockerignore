@@ -14,3 +14,11 @@ build
 *.sqlite3
 *.db
 *.egg-info/
+
+*.bin
+*.pt
+*.gguf
+tests/
+_pycache_/
+.dockerignore
+Dockerfile
