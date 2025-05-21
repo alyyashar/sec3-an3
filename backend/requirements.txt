@@ -51,3 +51,4 @@ pytest
 sqlalchemy
 Jinja2 
 weasyprint
+passlib==1.7.4
