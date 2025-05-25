@@ -1,134 +1,100 @@
-# backend/auth/auth_router.py
-
-from datetime import timedelta
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from jose import JWTError
-
-from db.database import get_db
-from db.models import User
+from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordBearer
 from db import schemas
-from auth.auth_utils import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    decode_access_token,
-)
+from auth.supabase_client import supabase
+from auth.auth_utils import validate_supabase_token
+
+import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-logger = logging.getLogger("auth")
-logger.setLevel(logging.INFO)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-) -> User:
-    credentials_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = decode_access_token(token)
-        email: str = payload.get("sub")
-        if not email:
-            raise credentials_exc
-    except JWTError:
-        raise credentials_exc
+# ──────────────────────────────────────────────
+# Register AN3 external users via Supabase
+# ──────────────────────────────────────────────
+@router.post("/register", response_model=schemas.UserOut, status_code=201)
+def register(user: schemas.UserCreate):
+    res = supabase.auth.sign_up({
+        "email": user.email,
+        "password": user.password,
+    })
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"]["message"])
 
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise credentials_exc
-    return user
+    u = res["data"]["user"]
+    return schemas.UserOut(id=u["id"], email=u["email"])
 
 
-@router.post(
-    "/register",
-    response_model=schemas.UserOut,
-    status_code=status.HTTP_201_CREATED,
-    summary="Register a new user",
-)
-def register(
-    user_in: schemas.UserCreate,
-    db: Session = Depends(get_db),
-):
-    logger.info(f"Attempting to register user: {user_in.email}")
-    if db.query(User).filter(User.email == user_in.email).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
-        )
+# ──────────────────────────────────────────────
+# Login AN3 users via Supabase Email/Password
+# ──────────────────────────────────────────────
+@router.post("/token", response_model=schemas.Token)
+def login(user: schemas.UserCreate):
+    res = supabase.auth.sign_in({
+        "email": user.email,
+        "password": user.password,
+    })
 
-    new_user = User(
-        email=user_in.email,
-        hashed_password=hash_password(user_in.password),
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    logger.info(f"User registered successfully: {new_user.email}")
-    return new_user
-
-
-@router.post(
-    "/login",
-    response_model=schemas.Token,
-    summary="Obtain JWT bearer token",
-)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
-):
-    # OAuth2PasswordRequestForm uses 'username' field for email
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        # Don't reveal which part failed
+    session = res.get("data", {}).get("session")
+    if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=30)
-    token = create_access_token(
-        data={"sub": user.email},
-        expires_delta=access_token_expires,
+    return {
+        "access_token": session["access_token"],
+        "token_type": "bearer",
+        "refresh_token": session["refresh_token"]
+    }
+
+
+# ──────────────────────────────────────────────
+# Get current AN3 user from Supabase JWT
+# ──────────────────────────────────────────────
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    return validate_supabase_token(token)
+
+
+@router.get("/me", response_model=schemas.UserOut)
+def me(user=Depends(get_current_user)):
+    return schemas.UserOut(id=user["sub"], email=user["email"])
+
+
+# ──────────────────────────────────────────────
+# Redirect to Supabase OAuth (Google, GitHub, etc.)
+# ──────────────────────────────────────────────
+@router.get("/oauth/{provider}")
+def oauth_redirect(provider: str):
+    url = supabase.auth.api.get_authorize_url(
+        provider=provider,
+        redirect_to=os.getenv("OAUTH_REDIRECT")
     )
-
-    return {"access_token": token, "token_type": "bearer"}
-
-
-@router.get(
-    "/users/me",
-    response_model=schemas.UserOut,
-    summary="Get currently authenticated user",
-)
-def read_current_user(current_user: User = Depends(get_current_user)):
-    return current_user
+    return RedirectResponse(url)
 
 
-@router.get(
-    "/users",
-    response_model=list[schemas.UserOut],
-    summary="List all users (requires authentication)",
-)
-def get_all_users(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    # If you want only admins, add a check here:
-    # if not current_user.is_admin:
-    #     raise HTTPException(status_code=403, detail="Not enough permissions")
-    return db.query(User).all()
+# ──────────────────────────────────────────────
+# Handle Supabase OAuth callback
+# ──────────────────────────────────────────────
+@router.get("/callback")
+def oauth_callback(code: str):
+    res = supabase.auth.exchange_oauth_for_token({
+        "code": code,
+        "provider": "google",  # you can also dynamically detect this
+    })
+
+    if res.get("error"):
+        raise HTTPException(400, res["error"]["message"])
+
+    return res["data"]
 
 
-@router.get("/test", summary="Health check")
+# ──────────────────────────────────────────────
+# Test endpoint (keep it)
+# ──────────────────────────────────────────────
+@router.get("/test")
 def test_api():
     return {"message": "Auth API is working"}

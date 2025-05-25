@@ -53,3 +53,4 @@ Jinja2
 weasyprint
 passlib
 python-jose
+supabase
