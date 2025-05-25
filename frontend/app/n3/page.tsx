@@ -20,7 +20,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4">
             <div className="h-9 w-9 rounded-full bg-[#1e3a2f] flex items-center justify-center">
-              <span className="text-[#4ee2b5]">👤</span>
+              <span className="text-[#68E06F]">👤</span>
             </div>
           </div>
         </div>
@@ -35,17 +35,17 @@ export default function Dashboard() {
             <CardContent className="p-6 flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3XUS</h2>
+                  <h2 className="text-2xl font-bold text-[#68E06F] mb-1">N3XUS</h2>
                   <h3 className="text-lg font-semibold mb-2">AI-Powered Smart Contract Auditing</h3>
                 </div>
                 <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
-                  <Shield className="h-7 w-7 text-[#4ee2b5]" />
+                  <Shield className="h-7 w-7 text-[#68E06F]" />
                 </div>
               </div>
               <p className="text-gray-400 mb-6">Utilize AI for auditing smart contracts.</p>
               <div className="mt-auto">
                 <Link href="/n3xus/dashboard" className="">
-                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
+                  <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]">Access</Button>
                 </Link>
               </div>
             </CardContent>
@@ -56,17 +56,17 @@ export default function Dashboard() {
             <CardContent className="p-6 flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3RV</h2>
+                  <h2 className="text-2xl font-bold text-[#68E06F] mb-1">N3RV</h2>
                   <h3 className="text-lg font-semibold mb-2">Real-Time Anomaly Detection</h3>
                 </div>
                 <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
-                  <Activity className="h-7 w-7 text-[#4ee2b5]" />
+                  <Activity className="h-7 w-7 text-[#68E06F]" />
                 </div>
               </div>
               <p className="text-gray-400 mb-6">Monitor blockchain activity continuously.</p>
               <div className="mt-auto">
                 <Link href="/n3rv">
-                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
+                  <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]">Access</Button>
                 </Link>
               </div>
             </CardContent>
@@ -77,17 +77,17 @@ export default function Dashboard() {
             <CardContent className="p-6 flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#4ee2b5] mb-1">N3ST</h2>
+                  <h2 className="text-2xl font-bold text-[#68E06F] mb-1">N3ST</h2>
                   <h3 className="text-lg font-semibold mb-2">Community-Driven Red Teaming & Bug Bounty</h3>
                 </div>
                 <div className="h-12 w-12 rounded-md bg-[#1e3a2f] flex items-center justify-center">
-                  <Bug className="h-7 w-7 text-[#4ee2b5]" />
+                  <Bug className="h-7 w-7 text-[#68E06F]" />
                 </div>
               </div>
               <p className="text-gray-400 mb-6">Engage users in finding and reporting vulnerabilities.</p>
               <div className="mt-auto">
                 <Link href="/n3st">
-                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">Access</Button>
+                  <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]">Access</Button>
                 </Link>
               </div>
             </CardContent>
@@ -117,7 +117,7 @@ export default function Dashboard() {
                       <div className="text-4xl font-bold">$1.82B</div>
                     </div>
                     <div className="h-12 w-12 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-                      <div className="h-8 w-8 rounded-full bg-[#1e3a2f] border-4 border-[#4ee2b5]"></div>
+                      <div className="h-8 w-8 rounded-full bg-[#1e3a2f] border-4 border-[#68E06F]"></div>
                     </div>
                   </div>
                 </CardContent>
@@ -154,7 +154,7 @@ export default function Dashboard() {
               <Card className="bg-[#121212] border-[#222]">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">Attack Trends Overview</CardTitle>
-                  <Button variant="link" className="text-[#4ee2b5] p-0">
+                  <Button variant="link" className="text-[#68E06F] p-0">
                     Daily &gt;
                   </Button>
                 </CardHeader>
@@ -167,7 +167,7 @@ export default function Dashboard() {
                           {[30, 45, 25, 60, 40, 75, 50, 65, 35, 70, 55, 80].map((height, i) => (
                             <div key={i} className="flex-1">
                               <div
-                                className="bg-gradient-to-t from-[#1e3a2f] to-[#4ee2b5] rounded-sm"
+                                className="bg-gradient-to-t from-[#1e3a2f] to-[#68E06F] rounded-sm"
                                 style={{ height: `${height}%` }}
                               ></div>
                             </div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
 
                       {/* Trend lines */}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <TrendingUp className="h-16 w-16 text-[#4ee2b5] opacity-20" />
+                        <TrendingUp className="h-16 w-16 text-[#68E06F] opacity-20" />
                       </div>
                     </div>
                   </div>
@@ -193,14 +193,14 @@ export default function Dashboard() {
                   <div className="flex">
                     <div className="w-1/2 flex items-center justify-center">
                       <div className="relative h-40 w-40 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-                        <div className="absolute inset-0 rounded-full border-8 border-[#4ee2b5] clip-half"></div>
+                        <div className="absolute inset-0 rounded-full border-8 border-[#68E06F] clip-half"></div>
                         <div className="text-2xl font-bold">50%</div>
                       </div>
                     </div>
                     <div className="w-1/2 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <div className="h-3 w-3 bg-[#4ee2b5] rounded-full mr-2"></div>
+                          <div className="h-3 w-3 bg-[#68E06F] rounded-full mr-2"></div>
                           <span>Reentrancy</span>
                         </div>
                         <span>30%</span>

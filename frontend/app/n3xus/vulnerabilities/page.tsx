@@ -225,7 +225,7 @@ if (block.timestamp >= unlockTime) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-[#4ee2b5]" />
+                <AlertTriangle className="h-5 w-5 text-[#68E06F]" />
                 All Vulnerabilities
               </CardTitle>
               <CardDescription>View and manage all detected security vulnerabilities</CardDescription>
@@ -282,7 +282,7 @@ if (block.timestamp >= unlockTime) {
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">
+              <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]">
                 <Shield className="mr-2 h-4 w-4" />
                 Run Auto-Patch
               </Button>
@@ -364,27 +364,27 @@ if (block.timestamp >= unlockTime) {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewDetails(item)}
-                            className="hover:bg-[#1e3a2f] hover:text-[#4ee2b5]"
+                            className="hover:bg-[#1e3a2f] hover:text-[#68E06F]"
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="hover:bg-[#1e3a2f] hover:text-[#4ee2b5]">
+                              <Button variant="ghost" size="sm" className="hover:bg-[#1e3a2f] hover:text-[#68E06F]">
                                 <ChevronDown className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="bg-[#1a1a1a] border-[#333]">
-                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#4ee2b5]">
+                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#68E06F]">
                                 <Code className="mr-2 h-4 w-4" />
                                 View Code
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#4ee2b5]">
+                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#68E06F]">
                                 <Shield className="mr-2 h-4 w-4" />
                                 Apply Auto-Fix
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-[#333]" />
-                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#4ee2b5]">
+                              <DropdownMenuItem className="hover:bg-[#1e3a2f] hover:text-[#68E06F]">
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Mark as Resolved
                               </DropdownMenuItem>
@@ -403,7 +403,7 @@ if (block.timestamp >= unlockTime) {
                         {(filterStatus !== "all" || filterSeverity !== "all" || searchQuery) && (
                           <Button
                             variant="link"
-                            className="mt-2 text-[#4ee2b5]"
+                            className="mt-2 text-[#68E06F]"
                             onClick={() => {
                               setFilterStatus("all")
                               setFilterSeverity("all")
@@ -562,7 +562,7 @@ if (block.timestamp >= unlockTime) {
                 </Card>
 
                 {/* Recommendation */}
-                <Card className="bg-[#1e3a2f]/20 border-[#1e3a2f] text-[#4ee2b5]">
+                <Card className="bg-[#1e3a2f]/20 border-[#1e3a2f] text-[#68E06F]">
                   <CardContent className="p-4">
                     <h3 className="font-medium mb-2 flex items-center gap-2">
                       <Shield className="h-4 w-4" />
@@ -597,7 +597,7 @@ if (block.timestamp >= unlockTime) {
                   <Button variant="outline" onClick={() => setSelectedVulnerability(null)} className="border-[#333]">
                     Close
                   </Button>
-                  <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]">
+                  <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]">
                     <Shield className="mr-2 h-4 w-4" />
                     Apply Auto-Fix
                   </Button>

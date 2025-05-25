@@ -65,7 +65,7 @@ export default function LiveSmartContractExploitTracker() {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-xl flex items-center gap-2 text-white">
-              <Shield className="h-5 w-5 text-[#4ee2b5]" />
+              <Shield className="h-5 w-5 text-[#68E06F]" />
               Recent Smart Contract Exploits
             </CardTitle>
             <CardDescription className="text-sm text-zinc-400 mt-1">
@@ -96,7 +96,7 @@ export default function LiveSmartContractExploitTracker() {
                     <div>
                       <div className="font-medium text-sm text-white">{alert.protocol}</div>
                       <div className="text-xs text-gray-400 flex items-center gap-2">
-                        <Badge variant="outline" className="text-[#4ee2b5] border-[#4ee2b5] text-[10px]">
+                        <Badge variant="outline" className="text-[#68E06F] border-[#68E06F] text-[10px]">
                           {alert.type}
                         </Badge>
                         <span>{alert.blockchain}</span>

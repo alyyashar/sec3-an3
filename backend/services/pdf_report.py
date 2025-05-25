@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 import os

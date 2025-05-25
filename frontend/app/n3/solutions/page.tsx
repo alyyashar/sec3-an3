@@ -29,7 +29,7 @@ export default function SolutionsPage() {
             <TabsTrigger value="all" className="data-[state=active]:bg-[#333] data-[state=active]:text-white">
               All Solutions
             </TabsTrigger>
-            <TabsTrigger value="n3xus" className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#4ee2b5]">
+            <TabsTrigger value="n3xus" className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#68E06F]">
               N3XUS
             </TabsTrigger>
             <TabsTrigger value="n3rv" className="data-[state=active]:bg-[#2a1f40] data-[state=active]:text-[#a36bfd]">
@@ -45,10 +45,10 @@ export default function SolutionsPage() {
               <SolutionCard
                 title="N3XUS"
                 icon={Shield}
-                iconColor="text-[#4ee2b5]"
+                iconColor="text-[#68E06F]"
                 bgColor="bg-[#0f2620]"
                 buttonBgColor="bg-[#1e3a2f]"
-                buttonTextColor="text-[#4ee2b5]"
+                buttonTextColor="text-[#68E06F]"
                 buttonHoverColor="hover:bg-[#2a5040]"
                 description="Smart contract auditing with AI-powered verification and real-time reporting"
                 features={[
@@ -110,7 +110,7 @@ export default function SolutionsPage() {
                       <th className="text-left py-4 px-4">Feature</th>
                       <th className="text-center py-4 px-4">
                         <div className="flex flex-col items-center">
-                          <Shield className="h-6 w-6 text-[#4ee2b5] mb-2" />
+                          <Shield className="h-6 w-6 text-[#68E06F] mb-2" />
                           <span>N3XUS</span>
                         </div>
                       </th>
@@ -132,7 +132,7 @@ export default function SolutionsPage() {
                     <tr className="border-b border-[#333]">
                       <td className="py-4 px-4">Smart Contract Auditing</td>
                       <td className="text-center py-4 px-4">
-                        <CheckCircle className="h-5 w-5 text-[#4ee2b5] mx-auto" />
+                        <CheckCircle className="h-5 w-5 text-[#68E06F] mx-auto" />
                       </td>
                       <td className="text-center py-4 px-4">
                         <CheckCircle className="h-5 w-5 text-gray-500 mx-auto" />
@@ -168,7 +168,7 @@ export default function SolutionsPage() {
                     <tr className="border-b border-[#333]">
                       <td className="py-4 px-4">AI-Powered Analysis</td>
                       <td className="text-center py-4 px-4">
-                        <CheckCircle className="h-5 w-5 text-[#4ee2b5] mx-auto" />
+                        <CheckCircle className="h-5 w-5 text-[#68E06F] mx-auto" />
                       </td>
                       <td className="text-center py-4 px-4">
                         <CheckCircle className="h-5 w-5 text-[#a36bfd] mx-auto" />
@@ -180,7 +180,7 @@ export default function SolutionsPage() {
                     <tr className="border-b border-[#333]">
                       <td className="py-4 px-4">PDF Report Generation</td>
                       <td className="text-center py-4 px-4">
-                        <CheckCircle className="h-5 w-5 text-[#4ee2b5] mx-auto" />
+                        <CheckCircle className="h-5 w-5 text-[#68E06F] mx-auto" />
                       </td>
                       <td className="text-center py-4 px-4">
                         <CheckCircle className="h-5 w-5 text-gray-500 mx-auto" />
@@ -210,7 +210,7 @@ export default function SolutionsPage() {
           <TabsContent value="n3xus" className="space-y-8">
             <div className="bg-[#0f2620] rounded-xl p-8 border border-[#1e3a2f]">
               <div className="flex items-center gap-3 mb-6">
-                <Shield className="h-10 w-10 text-[#4ee2b5]" />
+                <Shield className="h-10 w-10 text-[#68E06F]" />
                 <h2 className="text-3xl font-bold">N3XUS</h2>
               </div>
 
@@ -220,7 +220,7 @@ export default function SolutionsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-[#4ee2b5]">Key Features</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-[#68E06F]">Key Features</h3>
                   <ul className="space-y-3">
                     {[
                       "Automated vulnerability scanning",
@@ -232,7 +232,7 @@ export default function SolutionsPage() {
                       "Historical audit tracking",
                     ].map((feature, index) => (
                       <li key={index} className="flex items-start">
-                        <Check className="h-5 w-5 text-[#4ee2b5] mr-2 mt-0.5 flex-shrink-0" />
+                        <Check className="h-5 w-5 text-[#68E06F] mr-2 mt-0.5 flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -240,7 +240,7 @@ export default function SolutionsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-[#4ee2b5]">Use Cases</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-[#68E06F]">Use Cases</h3>
                   <div className="space-y-4">
                     <div className="p-4 bg-[#1a1a1a] rounded-lg border border-[#333]">
                       <h4 className="font-medium mb-2">Pre-deployment Auditing</h4>
@@ -261,7 +261,7 @@ export default function SolutionsPage() {
               </div>
 
               <Link href="/n3xus">
-                <Button className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040] px-6 py-6 text-lg">
+                <Button className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040] px-6 py-6 text-lg">
                   Access N3XUS
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Button>
@@ -394,7 +394,7 @@ export default function SolutionsPage() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
-              <Shield className="h-8 w-8 mr-2 text-[#4ee2b5]" />
+              <Shield className="h-8 w-8 mr-2 text-[#68E06F]" />
               <span className="text-xl font-bold">N3 Security Suite</span>
             </div>
             <div className="flex gap-6">

@@ -9,49 +9,74 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Shield, Eye, EyeOff, ArrowLeft } from "lucide-react"
-import { loginUser } from "@/api/backend-methods"
+import { Shield, Eye, EyeOff, ArrowLeft, Check } from "lucide-react"
+import { registerUser } from "@/api/backend-methods"
 import { setCookie } from "cookies-next"
-import { useToast } from "@/components/ui/use-toast"
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+export default function RegisterPage() {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match")
+      return
+    }
+    if (!acceptTerms) {
+      alert("Please accept the terms and conditions")
+      return
+    }
+
     setIsLoading(true)
+    console.log("HELOLOOOOOO")
     try {
-      const res = await loginUser({ email, password })
-      if (res && res.status === 200) {
+      const res = await registerUser({
+        email: formData.email,
+        password: formData.password,
+      })
+      console.log("HELLO")
+      if (res && res.statusCode === 200) {
         if (res.token) {
           setCookie("auth-token", res.token)
         }
+        // Redirect to dashboard or login
         router.push("/n3xus")
       } else {
-        toast({
-          title: "Login failed",
-          description: res?.message || "Invalid credentials. Please try again.",
-          variant: "destructive"
-        })
+        console.log("ERROR:::::", res)
       }
     } catch (err: any) {
-      toast({
-        title: "Login failed",
-        description: err?.message || "An error occurred. Please try again.",
-        variant: "destructive"
-      })
+      console.log("ERROR: ", err)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const passwordRequirements = [
+    { text: "At least 8 characters", met: formData.password.length >= 8 },
+    { text: "Contains uppercase letter", met: /[A-Z]/.test(formData.password) },
+    { text: "Contains lowercase letter", met: /[a-z]/.test(formData.password) },
+    { text: "Contains number", met: /\d/.test(formData.password) },
+    { text: "Contains special character", met: /[!@#$%^&*]/.test(formData.password) },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 mx-auto min-w-screen">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-white mb-6">
@@ -69,8 +94,10 @@ export default function LoginPage() {
 
         <Card className="bg-[#121212] border-[#222]">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-white">Welcome back</CardTitle>
-            <CardDescription className="text-center text-gray-400">Sign in to your account to continue</CardDescription>
+            <CardTitle className="text-2xl text-center text-white">Create your account</CardTitle>
+            <CardDescription className="text-center text-gray-400">
+              Join the future of blockchain security
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,10 +107,11 @@ export default function LoginPage() {
                 </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="john.doe@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="bg-[#1a1a1a] border-[#333] text-white"
                   required
                 />
@@ -96,10 +124,11 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     className="bg-[#1a1a1a] border-[#333] text-white pr-10"
                     required
                   />
@@ -117,26 +146,79 @@ export default function LoginPage() {
                     )}
                   </Button>
                 </div>
+
+                {formData.password && (
+                  <div className="mt-2 space-y-1">
+                    {passwordRequirements.map((req, index) => (
+                      <div key={index} className="flex items-center space-x-2 text-xs">
+                        <Check className={`h-3 w-3 ${req.met ? "text-green-500" : "text-gray-500"}`} />
+                        <span className={req.met ? "text-green-500" : "text-gray-400"}>{req.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <input id="remember" type="checkbox" className="rounded border-[#333] bg-[#1a1a1a]" />
-                  <Label htmlFor="remember" className="text-sm text-gray-400">
-                    Remember me
-                  </Label>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-white">
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="bg-[#1a1a1a] border-[#333] text-white pr-10"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
                 </div>
-                <Link href="/auth/forgot-password" className="text-sm text-[#68E06F] hover:underline">
-                  Forgot password?
-                </Link>
+                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-500">Passwords don't match</p>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="rounded border-[#333] bg-[#1a1a1a]"
+                />
+                <Label htmlFor="terms" className="text-sm text-gray-400">
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-[#68E06F] hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-[#68E06F] hover:underline">
+                    Privacy Policy
+                  </Link>
+                </Label>
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]"
-                disabled={isLoading}
+                disabled={isLoading || !acceptTerms || formData.password !== formData.confirmPassword}
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
 
@@ -180,9 +262,9 @@ export default function LoginPage() {
             </div>
 
             <div className="text-center text-sm text-gray-400">
-              Don't have an account?{" "}
-              <Link href="/auth/register" className="text-[#68E06F] hover:underline">
-                Sign up
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-[#68E06F] hover:underline">
+                Sign in
               </Link>
             </div>
           </CardContent>

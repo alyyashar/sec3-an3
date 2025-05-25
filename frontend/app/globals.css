@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
+    --card: 240 7% 7%; /* #0F0F12 */
+    --card-foreground: 0 0% 100%;
+    --popover: 240 7% 7%; /* #0F0F12 */
+    --popover-foreground: 0 0% 100%;
+    --primary: 133 66% 67%; /* #68E06F */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 220 9% 16%; /* #23232A */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 9% 16%;
+    --muted-foreground: 220 5% 60%; /* #6B7280 (gray-500) */
+    --accent: 133 66% 67%; /* #68E06F */
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 160 84% 39%;
+    --border: 240 5.9% 20%; /* #23232A */
+    --input: 240 5.9% 20%;
+    --ring: 133 66% 67%; /* #68E06F */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 7%;
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
+    --card: 240 7% 7%; /* #0F0F12 */
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 7%;
+    --popover: 240 7% 7%; /* #0F0F12 */
     --popover-foreground: 0 0% 100%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 12%;
+    --primary: 133 66% 67%; /* #68E06F */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 220 9% 16%; /* #23232A */
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 220 9% 16%;
+    --muted-foreground: 220 5% 60%; /* #6B7280 (gray-500) */
+    --accent: 133 66% 67%; /* #68E06F */
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 13%;
-    --input: 0 0% 13%;
-    --ring: 160 84% 39%;
+    --border: 240 5.9% 20%; /* #23232A */
+    --input: 240 5.9% 20%;
+    --ring: 133 66% 67%; /* #68E06F */
   }
 }
 
@@ -60,23 +60,41 @@
 
 /* Custom styles for the dashboard */
 .dashboard-card {
-  @apply bg-[#121212] border-[#222] rounded-lg overflow-hidden transition-all duration-200;
+  @apply bg-[#0F0F12] border-[#23232A] rounded-lg overflow-hidden transition-all duration-200;
 }
 
 .dashboard-card:hover {
-  @apply border-[#1e3a2f];
+  @apply border-[#68E06F];
 }
 
 .dashboard-icon {
-  @apply bg-[#1e3a2f] text-[#4ee2b5];
+  @apply bg-[#23232A] text-[#68E06F];
 }
 
 .dashboard-title {
-  @apply text-[#4ee2b5] font-bold;
+  @apply text-[#68E06F] font-bold;
 }
 
 .dashboard-button {
-  @apply bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040] transition-colors;
+  @apply bg-[#23232A] text-[#68E06F] hover:bg-[#1a3320] transition-colors;
+}
+
+.text-primary {
+  color: #ffffff;
+}
+.text-secondary {
+  color: #d1d5db; /* gray-300 */
+}
+.text-tertiary {
+  color: #9ca3af; /* gray-400 */
+}
+.text-muted {
+  color: #6b7280; /* gray-500 */
+}
+
+/* For nested elements like tables and list items */
+.nested-bg {
+  background: #000000;
 }
 
 /* Clip path for half circle charts */

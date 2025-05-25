@@ -25,7 +25,7 @@ export function ProductNavbar() {
               variant="ghost"
               className={cn(
                 "h-9 px-4 gap-2",
-                isActive("/n3xus") ? "bg-[#1e3a2f] text-[#4ee2b5]" : "text-gray-400 hover:text-white",
+                isActive("/n3xus") ? "bg-[#1e3a2f] text-[#68E06F]" : "text-gray-400 hover:text-white",
               )}
             >
               <Shield className="h-4 w-4" />

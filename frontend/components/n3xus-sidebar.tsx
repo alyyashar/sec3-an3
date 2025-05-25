@@ -100,7 +100,7 @@ export function IconSidebar() {
         <div className="mb-8">
           <Link href="/" className="flex items-center justify-center">
             <div className="h-10 w-10 rounded-md bg-[#1e3a2f] flex items-center justify-center">
-              <Shield className="h-6 w-6 text-[#4ee2b5]" />
+              <Shield className="h-6 w-6 text-[#68E06F]" />
             </div>
           </Link>
         </div>
@@ -116,7 +116,7 @@ export function IconSidebar() {
                     href={item.href}
                     className={cn(
                       "relative flex h-10 w-10 mx-auto items-center justify-center rounded-md transition-colors",
-                      isActive ? "bg-[#1e3a2f] text-[#4ee2b5]" : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]",
+                      isActive ? "bg-[#1e3a2f] text-[#68E06F]" : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]",
                     )}
                   >
                     <item.icon className="h-5 w-5" />
@@ -144,7 +144,7 @@ export function IconSidebar() {
                   className={cn(
                     "flex h-10 w-10 mx-auto items-center justify-center rounded-md transition-colors",
                     pathname === item.href
-                      ? "bg-[#1e3a2f] text-[#4ee2b5]"
+                      ? "bg-[#1e3a2f] text-[#68E06F]"
                       : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]",
                   )}
                 >
@@ -162,7 +162,7 @@ export function IconSidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="h-9 w-9 rounded-full bg-[#1e3a2f] flex items-center justify-center cursor-pointer">
-                <span className="text-[#4ee2b5] text-sm font-medium">JD</span>
+                <span className="text-[#68E06F] text-sm font-medium">JD</span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" className="border-[#333] bg-[#1a1a1a] text-white">

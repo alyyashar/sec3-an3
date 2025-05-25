@@ -53,7 +53,7 @@ module.exports = {
         },
         // Product-specific colors
         n3xus: {
-          primary: "#4ee2b5",
+          primary: "#68E06F",
           bg: "#1e3a2f",
           hover: "#2a5040",
         },

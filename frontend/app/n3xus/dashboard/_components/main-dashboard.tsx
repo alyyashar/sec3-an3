@@ -82,7 +82,7 @@ export default function N3XUSDashboard() {
         <h2 className="text-3xl font-bold tracking-tight">N3XUS Dashboard</h2>
         <div className="flex items-center space-x-2">
           <Button
-            className="bg-[#1e3a2f] text-[#4ee2b5] hover:bg-[#2a5040]"
+            className="bg-[#1e3a2f] text-[#68E06F] hover:bg-[#2a5040]"
             size="sm"
           >
             <Upload className="mr-2 h-4 w-4" />
@@ -108,7 +108,7 @@ export default function N3XUSDashboard() {
         <Card className="bg-[#121212] border-[#222]">
           <CardContent className="p-8 flex items-center justify-center">
             <div className="flex flex-col items-center">
-              <div className="animate-spin h-8 w-8 border-4 border-[#4ee2b5] border-t-transparent rounded-full mb-4"></div>
+              <div className="animate-spin h-8 w-8 border-4 border-[#68E06F] border-t-transparent rounded-full mb-4"></div>
               <p className="text-gray-400">Loading audit results...</p>
             </div>
           </CardContent>
@@ -118,19 +118,19 @@ export default function N3XUSDashboard() {
           <TabsList className="bg-[#121212] border border-[#333]">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#4ee2b5]"
+              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#68E06F]"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#4ee2b5]"
+              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#68E06F]"
             >
               Analytics
             </TabsTrigger>
             <TabsTrigger
               value="vulnerabilities"
-              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#4ee2b5]"
+              className="data-[state=active]:bg-[#1e3a2f] data-[state=active]:text-[#68E06F]"
             >
               Vulnerabilities
             </TabsTrigger>
@@ -144,7 +144,7 @@ export default function N3XUSDashboard() {
                     Total Audits
                   </CardTitle>
                   <div className="h-8 w-8 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-                    <ClipboardList className="h-4 w-4 text-[#4ee2b5]" />
+                    <ClipboardList className="h-4 w-4 text-[#68E06F]" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -211,7 +211,7 @@ export default function N3XUSDashboard() {
                     Avg. Audit Time
                   </CardTitle>
                   <div className="h-8 w-8 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-[#4ee2b5]" />
+                    <Clock className="h-4 w-4 text-[#68E06F]" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -230,7 +230,7 @@ export default function N3XUSDashboard() {
             <Card className="bg-[#121212] border-[#222]">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-[#4ee2b5]" />
+                  <Shield className="h-5 w-5 text-[#68E06F]" />
                   Smart Contract Security Audit Results
                 </CardTitle>
                 <Button
@@ -250,7 +250,7 @@ export default function N3XUSDashboard() {
               <Card className="col-span-4 bg-[#121212] border-[#222]">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-[#4ee2b5]" />
+                    <Clock className="h-5 w-5 text-[#68E06F]" />
                     Recent Audits
                   </CardTitle>
                   <CardDescription>
@@ -265,7 +265,7 @@ export default function N3XUSDashboard() {
               <Card className="col-span-3 bg-[#121212] border-[#222]">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xl flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-[#4ee2b5]" />
+                    <Clock className="h-5 w-5 text-[#68E06F]" />
                     Audit Timeline
                   </CardTitle>
                   <CardDescription>Recent audit activity</CardDescription>
@@ -281,7 +281,7 @@ export default function N3XUSDashboard() {
             <Card className="bg-[#121212] border-[#222]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-[#4ee2b5]" />
+                  <TrendingUp className="h-5 w-5 text-[#68E06F]" />
                   Security Analytics
                 </CardTitle>
               </CardHeader>
@@ -303,7 +303,7 @@ export default function N3XUSDashboard() {
             <Card className="bg-[#121212] border-[#222]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-[#4ee2b5]" />
+                  <AlertTriangle className="h-5 w-5 text-[#68E06F]" />
                   Vulnerability Overview
                 </CardTitle>
               </CardHeader>

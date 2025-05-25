@@ -99,7 +99,7 @@ export function N3Sidebar() {
     <Sidebar className="text-white mx-auto pl-3">
       <SidebarHeader>
         <Link href={"/"} className="flex items-center gap-2 py-4">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#4ee2b5] to-[#2ec9ff]" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#68E06F] to-[#2ec9ff]" />
           <div>
             <h1 className="text-lg font-bold text-white">N3</h1>
             <p className="text-xs text-zinc-400">Security Suite</p>
