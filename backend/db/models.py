@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
@@ -41,3 +41,10 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Waitlists(Base):
+    __tablename__ = "waitlist-users"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    createdAt = Column(DateTime, default=datetime.utcnow)

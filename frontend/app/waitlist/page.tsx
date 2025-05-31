@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import An3Logo from "@/public/an3-logo.png"
+import { joinWaitlist } from "@/api/backend-methods"
 
 // Custom icons for social media
 const XIcon = ({ className }: { className?: string }) => (
@@ -37,13 +38,19 @@ export default function LandingPage() {
   // Replace this with your real backend check
   // useEffect(() => { ... }, [])
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setJustJoined(true)
-    if (email === "already@joined.com") {
-      setAlreadyJoined(true)
-    } else {
-      setAlreadyJoined(false)
+    try {
+      await joinWaitlist(email)
+    } catch (err: any) {
+      if (err?.response?.data?.detail === "Already Joined") {
+        setAlreadyJoined(true)
+        setJustJoined(false)
+      } else {
+        // Optionally handle other errors
+        setJustJoined(true)
+        setAlreadyJoined(false)
+      }
     }
     setEmail("")
   }
@@ -79,14 +86,16 @@ export default function LandingPage() {
         <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform group-hover:scale-105" />
         <span className="sr-only">AN3 Home</span>
       </a>
-      <div className="w-full max-w-7xl mx-auto relative">
+      <div className="w-full max-w-7xl mx-auto relative mt-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 flex items-center justify-center font-manrope">
-            <span style={{ color: "#68E06F" }} className="font-rajdhani">
+          <h1 className="text-lg md:text-6xl font-bold mb-4 flex items-center justify-center">
+            <span style={{ color: "#68E06F", fontFamily: "var(--font-rajdhani)" }}>
               N3
             </span>
-            <span className="font-rajdhani ml-2 text-white font-semibold">Security Suite</span>
+            <span className="ml-2 text-white font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>
+              Security Suite
+            </span>
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto font-manrope">
             AN3's full-stack cybersecurity suite built for securing Web3 from code to consensus.

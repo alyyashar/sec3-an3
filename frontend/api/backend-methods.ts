@@ -23,3 +23,6 @@ export const postAttestation = (auditId: string, data: {} | undefined) =>
   apiWrapper(post, url.ATTESTATION(auditId), data);
 export const getAttestation = (auditId: string) =>
   apiWrapper(get, url.ATTESTATION(auditId));
+
+// Waitlist
+export const joinWaitlist = (email: string) => apiWrapper(post, url.JOIN_WAITLIST + `?email=${encodeURIComponent(email)}`);

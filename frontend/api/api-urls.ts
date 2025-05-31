@@ -17,3 +17,6 @@ export const SCAN_REPORT = (auditId: string) => `/api/scan/${auditId}/report`;
 
 // Attestation (now with prefix)
 export const ATTESTATION = (auditId: string) => `/api/attestation/${auditId}`;
+
+// Waitlist
+export const JOIN_WAITLIST = "/api/waitlist/";

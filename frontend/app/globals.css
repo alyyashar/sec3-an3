@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/Rajdhani-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 0 0% 0%; /* #000000 */
@@ -24,6 +32,7 @@
     --input: 240 5.9% 20%;
     --ring: 133 66% 67%; /* #68E06F */
     --radius: 0.5rem;
+    --font-rajdhani: 'Rajdhani', sans-serif;
   }
 
   .dark {

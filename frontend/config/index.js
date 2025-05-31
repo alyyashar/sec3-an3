@@ -1,3 +1,3 @@
 export default {
-    API_URL: "https://sec3-an3-production.up.railway.app/",
+    API_URL: "http://127.0.0.1:8000/",
 }
