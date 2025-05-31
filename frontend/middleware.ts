@@ -4,11 +4,11 @@ import type { NextRequest } from 'next/server'
 // Only allow access to /n3/waitlist and its subpaths. Redirect everything else to /n3/waitlist.
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  if (pathname === '/n3/waitlist' || pathname.startsWith('/n3/waitlist/')) {
+  if (pathname === '/waitlist' || pathname.startsWith('/waitlist/')) {
     return NextResponse.next()
   }
   const waitlistUrl = request.nextUrl.clone()
-  waitlistUrl.pathname = '/n3/waitlist'
+  waitlistUrl.pathname = '/waitlist'
   return NextResponse.redirect(waitlistUrl)
 }
 
