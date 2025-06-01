@@ -81,16 +81,25 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center w-[100vw] justify-center p-6 relative font-manrope">
-      {/* AN3 Logo top left */}
-      <a href="https://an3.io" rel="noopener noreferrer" className="fixed top-6 left-6 z-30 flex items-center group">
-        <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform group-hover:scale-105" />
+      {/* AN3 Logo sticky navbar for mobile only */}
+      <div className="fixed top-0 left-0 w-full z-30 bg-black/80 border-b border-[#23232A] flex items-center h-20 px-6 backdrop-blur-md md:hidden">
+        <a href="https://an3.io" rel="noopener noreferrer" className="flex items-center group">
+          <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform group-hover:scale-105" />
+          <span className="sr-only">AN3 Home</span>
+        </a>
+      </div>
+      <div className="hidden md:block">
+      <a href="https://an3.io" rel="noopener noreferrer" className="fixed top-2 left-6 z-30 flex items-center group md:mt-0">
+        <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform" />
         <span className="sr-only">AN3 Home</span>
       </a>
-      <div className="w-full max-w-7xl mx-auto relative mt-8">
+      </div>
+      
+      <div className="w-full max-w-7xl mx-auto relative mt-28 md:mt-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-lg md:text-6xl font-bold mb-4 flex items-center justify-center">
-            <span style={{ color: "#68E06F", fontFamily: "var(--font-rajdhani)" }}>
+          <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-4 flex items-center justify-center">
+            <span style={{ color: "#68E06F", fontFamily: "var(--font-rajdhani)" }} className="font-[radhani]">
               N3
             </span>
             <span className="ml-2 text-white font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>
@@ -246,7 +255,7 @@ export default function LandingPage() {
           {products.map((product) => (
             <div
               key={product.name}
-              className={`bg-black  rounded-lg p-8 relative shadow-sm transition-all duration-300 opacity-50 transform scale-110 hover:scale-125 hover:opacity-70 hover:shadow-xl`}
+              className={`bg-black  rounded-lg p-8 relative shadow-sm transition-all duration-300 xs:w-[100vw] md:w-full opacity-50 transform scale-110 hover:scale-125 hover:opacity-70 hover:shadow-xl`}
               style={{ borderColor: product.color }}
             >
               {/* Lock overlay for unavailable products */}
@@ -288,7 +297,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <div className="text-center mt-12">
-          <p className="text-xs text-gray-500">© 2024 AN3. All rights reserved.</p>
+          <p className="text-xs text-gray-500">© {new Date().getFullYear()} AN3. All rights reserved.</p>
         </div>
       </div>
     </div>
