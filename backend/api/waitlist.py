@@ -5,17 +5,21 @@ from db.models import Waitlists
 from datetime import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import os
+import json
+import base64
 
 router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
 # Google Sheets setup (fill in your actual file and sheet info)
-SERVICE_ACCOUNT_FILE = 'service-file/an3-sheets-d2d50e801e4e.json'
+b64_string = os.getenv("GOOGLE_SA_JSON_B64")
+creds = json.loads(base64.b64decode(b64_string))
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1Jjnp4ZjTIX-2Y7PXGq5ZPrPEwVhzbDb19DyHTP6zWVA'
 SHEET_NAME = 'Sheet1'
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+credentials = service_account.Credentials.from_service_account_info(
+    creds, scopes=SCOPES
 )
 sheet_service = build('sheets', 'v4', credentials=credentials)
 
