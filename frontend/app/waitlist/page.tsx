@@ -80,11 +80,11 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center w-[100vw] justify-center p-6 relative font-manrope">
+    <div className="min-h-screen max-w-[100vw] bg-black flex flex-col items-center w-[100vw] justify-center p-6 relative font-[rajdhani]">
       {/* AN3 Logo sticky navbar for mobile only */}
-      <div className="fixed top-0 left-0 w-full z-30 bg-black/80 border-b border-[#23232A] flex items-center h-20 px-6 backdrop-blur-md md:hidden">
+      <div className="fixed top-0 left-0 w-full max-w-[100vw] z-30 bg-black/80 border-b border-[#23232A] flex items-center h-20 px-6 backdrop-blur-md md:hidden">
         <a href="https://an3.io" rel="noopener noreferrer" className="flex items-center group">
-          <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform group-hover:scale-105" />
+          <Image src={An3Logo} alt="AN3 Logo" width={120} height={60} className="h-16 w-auto transition-transform md:group-hover:scale-105" />
           <span className="sr-only">AN3 Home</span>
         </a>
       </div>
@@ -99,20 +99,20 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-4 flex items-center justify-center">
-            <span style={{ color: "#68E06F", fontFamily: "var(--font-rajdhani)" }} className="font-[radhani]">
+            <span style={{ color: "#68E06F", fontFamily: "var(--font-rajdhani)" }} className="font-[rajdhani]">
               N3
             </span>
             <span className="ml-2 text-white font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>
               Security Suite
             </span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto font-manrope">
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto font-[rajdhani]">
             AN3's full-stack cybersecurity suite built for securing Web3 from code to consensus.
           </p>
         </div>
 
         {/* Waitlist Section - Popup Style with Gradient Background */}
-        <div className="flex justify-center z-20 mb-8">
+        <div className="flex justify-center z-20 mb-8 max-w-[100vw]">
           {/* Gradient Background */}
           <div
             className="absolute inset-0 rounded-2xl blur-lg opacity-20 scale-110"
@@ -196,10 +196,10 @@ export default function LandingPage() {
             // Default: Waitlist form
             <div className="bg-black/90 backdrop-blur-xl border border-[#1F1F23] rounded-2xl p-8 max-w-2xl w-full mx-auto text-center shadow-2xl relative z-10">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-white font-manrope mb-2">
+                <h3 className="text-2xl font-bold text-white font-[rajdhani] mb-2">
                   Get Early Access to the Future of Web3 Security
                 </h3>
-                <p className="text-sm text-gray-400">Secure your spot today.</p>
+                <p className="text-sm text-gray-400 !font-[rajdhani]">Secure your spot today.</p>
               </div>
               <form onSubmit={handleEmailSubmit} className="space-y-4 mb-6">
                 <Input
@@ -212,13 +212,13 @@ export default function LandingPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full text-black border-none shadow-md bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
+                  className="w-full text-black border-none shadow-md font-[rajdhani] bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
                 >
                   Join Waitlist
                 </Button>
               </form>
               <div className="mb-6">
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 font-[rajdhani]">
                   Join <span className="font-medium text-[#68E06F]">140+</span> others on the waitlist.
                 </p>
               </div>
@@ -255,7 +255,7 @@ export default function LandingPage() {
           {products.map((product) => (
             <div
               key={product.name}
-              className={`bg-black  rounded-lg p-8 relative shadow-sm transition-all duration-300 xs:w-[100vw] md:w-full opacity-50 transform scale-110 hover:scale-125 hover:opacity-70 hover:shadow-xl`}
+              className={`bg-black  rounded-lg p-8 relative shadow-sm transition-all duration-300 xs:w-[95vw] md:w-full opacity-50 transform md:scale-110 md:hover:scale-125 hover:opacity-70 hover:shadow-xl`}
               style={{ borderColor: product.color }}
             >
               {/* Lock overlay for unavailable products */}
