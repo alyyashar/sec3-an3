@@ -13,6 +13,8 @@ router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
 # Google Sheets setup (fill in your actual file and sheet info)
 b64_string = os.getenv("GOOGLE_SA_JSON_B64")
+if not b64_string:
+    raise RuntimeError("GOOGLE_SA_JSON_B64 environment variable is missing or empty. Please set it in your deployment environment.")
 creds = json.loads(base64.b64decode(b64_string))
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1Jjnp4ZjTIX-2Y7PXGq5ZPrPEwVhzbDb19DyHTP6zWVA'
