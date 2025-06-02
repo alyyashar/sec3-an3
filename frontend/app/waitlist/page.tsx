@@ -118,7 +118,7 @@ export default function LandingPage() {
       <div className="w-full max-w-7xl mx-auto relative mt-28 md:mt-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-4 flex items-center justify-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-6 flex items-center justify-center">
             <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-manrope">
               N3.
             </span>
@@ -213,7 +213,7 @@ export default function LandingPage() {
           ) : (
             // Default: Waitlist form
             <div className="bg-black/90 backdrop-blur-xl border border-[#1F1F23] rounded-2xl p-8 max-w-2xl w-full mx-auto text-center shadow-2xl relative z-10">
-              <div className="mb-6">
+              <div className="mb-8">
                 <h3 className="text-2xl font-bold text-white font-manrope mb-2">
                   Get Early Access to the Future of Web3 Security
                 </h3>
@@ -227,7 +227,7 @@ export default function LandingPage() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[#1F1F23] border-[#1F1F23] text-white placeholder-gray-500 focus:ring-[#68E06F] font-manrope"
+                  className="bg-[#1F1F23] border-[#1F1F23] text-white placeholder-gray-500 focus:ring-[#68E06F] font-manrope mb-2"
                   required
                 />
                 <Button
@@ -247,21 +247,21 @@ export default function LandingPage() {
               <div className="flex justify-center space-x-4">
                 <a
                   href="https://x.com/AN3_io"
-                  className="p-2 bg-[#1F1F23] rounded-full hover:bg-[#68E06F]/20 transition-colors"
+                  className="rounded-full hover:bg-[#68E06F]/20 transition-colors"
                   aria-label="X (Twitter)"
                 >
                   <XIcon className="h-4 w-4 text-gray-400 hover:text-[#68E06F]" />
                 </a>
                 <a
                   href="https://www.linkedin.com/company/an3-io/"
-                  className="p-2 bg-[#1F1F23] rounded-full hover:bg-[#68E06F]/20 transition-colors"
+                  className="rounded-full hover:bg-[#68E06F]/20 transition-colors"
                   aria-label="LinkedIn"
                 >
                   <LinkedinIcon className="h-4 w-4 text-gray-400 hover:text-[#68E06F]" />
                 </a>
                 <a
                   href="https://t.me/an3io"
-                  className="p-2 bg-[#1F1F23] rounded-full hover:bg-[#68E06F]/20 transition-colors"
+                  className="rounded-full hover:bg-[#68E06F]/20 transition-colors"
                   aria-label="Telegram"
                 >
                   <TelegramIcon className="h-4 w-4 text-gray-400 hover:text-[#68E06F]" />
