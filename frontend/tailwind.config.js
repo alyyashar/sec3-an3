@@ -88,8 +88,8 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
        fontFamily: {
-        rajdhani: ['var(--font-rajdhani)', 'sans-serif'],
-        manrope: ['var(--font-manrope)', 'sans-serif'],
+        'rajdhani': ['var(--font-rajdhani)', 'sans-serif'],
+        'manrope': ['var(--font-manrope)', 'sans-serif'],
       },
     },
   },

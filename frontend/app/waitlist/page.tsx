@@ -80,7 +80,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen max-w-[100vw] bg-black flex flex-col items-center w-[100vw] justify-center p-6 relative font-[manrope]">
+    <div className="min-h-screen max-w-[100vw] bg-black flex flex-col items-center w-[100vw] justify-center p-6 relative font-manrope">
       {/* AN3 Logo sticky navbar for mobile only */}
       <div className="fixed top-0 left-0 w-full max-w-[100vw] z-30 bg-black/80 border-b border-[#23232A] flex items-center h-20 px-6 backdrop-blur-md md:hidden">
         <a
@@ -119,11 +119,11 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-4 flex items-center justify-center">
-            <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-[rajdhani]">
+            <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-rajdhani">
               N3.
             </span>
           </h1>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto font-[manrope]">
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto font-manrope">
             AN3's full-stack cybersecurity suite built for securing Web3 from
             code to consensus.
           </p>
@@ -145,10 +145,10 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-[#68E06F] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Lock className="h-8 w-8 text-black" />
               </div>
-              <h1 className="text-2xl font-semibold text-white mb-2 font-[manrope]">
+              <h1 className="text-2xl font-semibold text-white mb-2 font-manrope">
                 You're already on the waitlist!
               </h1>
-              <p className="text-gray-400 mb-6 font-[manrope]">
+              <p className="text-gray-400 mb-6 font-manrope">
                 Thank you for your interest. We'll notify you when we launch.
               </p>
               <div className="flex justify-center space-x-4 mt-4">
@@ -180,10 +180,10 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-[#68E06F] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Lock className="h-8 w-8 text-black" />
               </div>
-              <h1 className="text-2xl font-semibold text-white mb-2 font-[manrope]">
+              <h1 className="text-2xl font-semibold text-white mb-2 font-manrope">
                 Thank you for joining the waitlist!
               </h1>
-              <p className="text-gray-400 mb-6 font-[manrope]">
+              <p className="text-gray-400 mb-6 font-manrope">
                 We're excited to have you on board. Stay tuned for updates.
               </p>
               <div className="flex justify-center space-x-4 mt-4">
@@ -214,10 +214,10 @@ export default function LandingPage() {
             // Default: Waitlist form
             <div className="bg-black/90 backdrop-blur-xl border border-[#1F1F23] rounded-2xl p-8 max-w-2xl w-full mx-auto text-center shadow-2xl relative z-10">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-white font-[manrope] mb-2">
+                <h3 className="text-2xl font-bold text-white font-manrope mb-2">
                   Get Early Access to the Future of Web3 Security
                 </h3>
-                <p className="text-sm text-gray-400 font-[manrope]">
+                <p className="text-sm text-gray-400 font-manrope">
                   Secure your spot today.
                 </p>
               </div>
@@ -227,18 +227,18 @@ export default function LandingPage() {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[#1F1F23] border-[#1F1F23] text-white placeholder-gray-500 focus:ring-[#68E06F] font-[manrope]"
+                  className="bg-[#1F1F23] border-[#1F1F23] text-white placeholder-gray-500 focus:ring-[#68E06F] font-manrope"
                   required
                 />
                 <Button
                   type="submit"
-                  className="w-full text-black border-none shadow-md font-[rajdhani] bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
+                  className="w-full text-black border-none shadow-md font-rajdhani bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
                 >
                   Join Waitlist
                 </Button>
               </form>
               <div className="mb-6">
-                <p className="text-sm text-gray-400 font-[manrope]">
+                <p className="text-sm text-gray-400 font-manrope">
                   Join <span className="font-medium text-[#68E06F]">140+</span>{' '}
                   others on the waitlist.
                 </p>
@@ -276,14 +276,14 @@ export default function LandingPage() {
           {products.map((product) => (
             <div
               key={product.name}
-              className={`bg-black  rounded-lg p-8 relative shadow-sm transition-all duration-300 xs:w-[95vw] md:w-full opacity-50 transform md:scale-110 md:hover:scale-125 hover:opacity-70 hover:shadow-xl`}
+              className={`bg-black rounded-lg p-8 relative shadow-sm transition-all duration-300 xs:w-[95vw] md:w-full opacity-50 transform md:scale-110 md:hover:scale-125 hover:opacity-70 hover:shadow-xl`}
               style={{ borderColor: product.color }}
             >
               {/* Lock overlay for unavailable products */}
               <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-lg flex items-center justify-center z-10">
                 <div className="text-center">
                   <Lock className="h-10 w-10 text-gray-500 mx-auto mb-3" />
-                  <span className="text-sm text-gray-400 font-medium font-[manrope]">
+                  <span className="text-sm text-gray-400 font-medium font-manrope">
                     Coming Soon
                   </span>
                 </div>
@@ -305,13 +305,13 @@ export default function LandingPage() {
                     </>
                   )}
                 </h3>
-                <h4 className="text-xl font-medium text-gray-300 mb-8 font-[manrope]">
+                <h4 className="text-xl font-medium text-gray-300 mb-8 font-manrope">
                   {product.title}
                 </h4>
 
                 <Button
                   disabled
-                  className="w-full bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed py-3 font-[manrope]"
+                  className="w-full bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed py-3 font-manrope"
                 >
                   Coming Soon
                 </Button>
@@ -322,7 +322,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <div className="text-center mt-12">
-          <p className="text-xs text-gray-500 font-[manrope]">
+          <p className="text-xs text-gray-500 font-manrope">
             © {new Date().getFullYear()} AN3. All rights reserved.
           </p>
         </div>
