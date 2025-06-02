@@ -119,7 +119,7 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-4 flex items-center justify-center">
-            <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-rajdhani">
+            <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-manrope">
               N3.
             </span>
           </h1>
@@ -232,7 +232,7 @@ export default function LandingPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full text-black border-none shadow-md font-rajdhani bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
+                  className="w-full text-black border-none shadow-md font-manrope bg-[#68E06F] hover:bg-[#5bc75f] font-medium"
                 >
                   Join Waitlist
                 </Button>
@@ -290,7 +290,7 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center">
-                <h3 className="text-3xl font-bold text-white font-rajdhani mb-6">
+                <h3 className="text-3xl font-bold text-white font-manrope mb-6">
                   {product.name === 'N3RV' ? (
                     <>
                       N<span style={{ color: '#A855F7' }}>3</span>RV
