@@ -14,7 +14,7 @@ app = FastAPI(title="N3XUS API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:3000",
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:3000|https://n3.an3.io",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
