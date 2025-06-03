@@ -118,7 +118,7 @@ export default function LandingPage() {
       <div className="w-full max-w-7xl mx-auto relative mt-28 md:mt-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-2 md:mb-6 flex items-center justify-center">
+          <h1 className="text-6xl md:text-8xl font-bold mb-2 md:mb-6 flex items-center justify-center">
             <span className="bg-gradient-to-t from-[#68E06F] to-gray-950 bg-clip-text text-transparent font-manrope">
               N3.
             </span>
