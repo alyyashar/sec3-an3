@@ -50,7 +50,7 @@ def join_waitlist(email: str, db: Session = Depends(get_db)):
         db.refresh(user)
         append_email_to_sheet(user.email, user.createdAt)
         print(f"[waitlist] Joined: {user.email} at {user.createdAt}")
-        return {"email": user.email, "createdAt": user.createdAt}
+        return {"email": user.email, "createdAt": user.createdAt, "status": "success"}
     except Exception as e:
         print(f"[waitlist] Error: {e}")
         raise

@@ -41,13 +41,18 @@ export default function LandingPage() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await joinWaitlist(email);
+      const {status} = await joinWaitlist(email);
+      if(status === "success") {
+        setJustJoined(true);
+        setAlreadyJoined(false);
+      }
     } catch (err: any) {
       if (err?.response?.data?.detail === 'Already Joined') {
         setAlreadyJoined(true);
         setJustJoined(false);
       } else {
         // Optionally handle other errors
+        console.log("HELLLOL JUST JOIINNED")
         setJustJoined(true);
         setAlreadyJoined(false);
       }
